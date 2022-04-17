@@ -34,10 +34,6 @@ app.config["SECRET_KEY"] = "yandexlyceum_secret_key"
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-link_css = url_for("static", filename="css/style.css"),
-link_logo = url_for("static", filename="img/logo.png"),
-link_js = url_for("static", filename="js/script.js")
-
 
 def sound_the_word(word, filename):
     r = requests.get('https://speech.tatar/synthesize_tatar_hack', params={"text": word},
@@ -250,9 +246,6 @@ def load_user(user_id):
 def index():
     return render_template(
         "index.html",
-        link_css=link_css,
-        link_logo=link_css,
-        link_js=link_js,
     )
 
 
@@ -277,12 +270,9 @@ def login():
             return redirect("/")
         return render_template('login.html',
                                message="Неправильный логин или пароль",
-                               form=form, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
-    return render_template('login.html', title='Авторизация', form=form, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+                               form=form)
+    return render_template('login.html', title='Авторизация', form=form
+                           )
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -292,16 +282,12 @@ def reqister():
         if form.password.data != form.password_again.data:
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Пароли не совпадают", link_css=link_css,
-                                   link_logo=link_css,
-                                   link_js=link_js)
+                                   message="Пароли не совпадают")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Такой пользователь уже есть", link_css=link_css,
-                                   link_logo=link_css,
-                                   link_js=link_js)
+                                   message="Такой пользователь уже есть")
         user = User(
             name=form.name.data,
             email=form.email.data,
@@ -310,9 +296,7 @@ def reqister():
         db_sess.add(user)
         db_sess.commit()
         return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('register.html', title='Регистрация', form=form)
 
 
 @app.route('/settings')
@@ -324,9 +308,7 @@ def settings():
 @app.route('/profile')
 @login_required
 def profile():
-    return render_template('profile.html', link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('profile.html')
 
 
 @app.route('/books_and_texts/<int:val>', methods=['GET', 'POST'])
@@ -336,16 +318,12 @@ def books_and_texts(val):
     if request.method == 'POST':
         books = db_sess.query(Book).filter(
             (Book.title.like(f"%{request.form.get('field')}%")) | (Book.author.like(f"%{request.form.get('field')}%")))
-        return render_template('books_and_texts.html', title='книги и тексты', books=books, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('books_and_texts.html', title='книги и тексты', books=books)
     if val == 0:
         books = db_sess.query(Book).all()
     else:
         books = db_sess.query(Book).filter(Book.level_id == val).all()
-    return render_template('books_and_texts.html', title='книги и тексты', books=books, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('books_and_texts.html', title='книги и тексты', books=books)
 
 
 @app.route('/words', methods=['GET', 'POST'])
@@ -357,17 +335,13 @@ def words():
         words = db_sess.query(Word).filter(
             (Word.word.like(f"%{request.form.get('field')}%")) | (Word.word_ru.like(f"%{request.form.get('field')}%")),
             Word.id.in_(list(map(int, user_words_id))))
-        return render_template('words.html', title='мои слова', words=words, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('words.html', title='мои слова', words=words)
     user_words_id = \
         db_sess.query(User.words).filter(User.id == current_user.id,
                                          Word.id.in_(list(map(int, user_words_id)))).first()[
             0].split(',')
     words = db_sess.query(Word).filter(Word.id.in_(list(map(int, user_words_id)))).all()
-    return render_template('words.html', title='мои слова', words=words, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('words.html', title='мои слова', words=words)
 
 
 @app.route('/books', methods=['GET', 'POST'])
@@ -379,9 +353,7 @@ def books():
                                            Book.title.like(f"%{request.form.get('field')}%")).all()
         return render_template('books.html', title='мои слова', books=books)
     books = db_sess.query(Book).filter(Book.user_author_id == current_user.id).all()
-    return render_template('books.html', title='мои слова', books=books, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('books.html', title='мои слова', books=books)
 
 
 @app.route('/add_text', methods=['GET', 'POST'])
@@ -417,12 +389,8 @@ def add_text():
             return redirect("/books_and_texts/0")
         return render_template('add_text.html',
                                message="не все поля заполнены",
-                               form=form, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
-    return render_template('add_text.html', title='добавление текста', form=form, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+                               form=form)
+    return render_template('add_text.html', title='добавление текста', form=form)
 
 
 @app.route('/quiz', methods=['GET', 'POST'])
@@ -460,9 +428,7 @@ def quiz_form():
             'current_answer': user_progress[current_user.id]["quiz"]["question_number"],
             'title': 'Quiz Answer' + str(user_progress[current_user.id]["quiz"]["question_number"])
         }
-        return render_template('quiz.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('quiz.html', **params)
     elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
         if request.form is not None:
             if len(request.form) > 1:
@@ -485,12 +451,10 @@ def quiz_result():
     params = {
         'count': count,
         'level': level_name,
-            'title': 'Quiz Result'
+        'title': 'Quiz Result'
     }
     if user_progress[current_user.id]["quiz"]["showed"]:
-        return render_template('quiz_rezult.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('quiz_rezult.html', **params)
     level_name = count / level_name
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -504,9 +468,7 @@ def quiz_result():
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["quiz"]["showed"] = True
-    return render_template('quiz_rezult.html', **params, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('quiz_rezult.html', **params)
 
 
 @app.route('/training/1', methods=['GET', 'POST'])
@@ -550,9 +512,7 @@ def training1_form():
             'current_answer': train[num][1],
             'title': 'Training' + train[num][0]
         }
-        return render_template('training1.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('training1.html', **params)
     elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
         num = user_progress[current_user.id]["tr1"]['question_training_number']
         train = user_progress[current_user.id]["tr1"]['training_program']
@@ -588,9 +548,7 @@ def training1_result():
         'title': 'Training Result'
     }
     if user_progress[current_user.id]["tr1"]["showed"]:
-        return render_template('training1_rezult.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('training1_rezult.html', **params)
     level_name = count / level
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -604,9 +562,7 @@ def training1_result():
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["tr1"]["showed"] = True
-    return render_template('training1_rezult.html', **params, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('training1_rezult.html', **params)
 
 
 @app.route('/training/2', methods=['GET', 'POST'])
@@ -651,9 +607,7 @@ def training2_form():
             'aud': fn
         }
         print(f"../static/media/{current_user.name}.wav")
-        return render_template('training2.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('training2.html', **params)
     elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
         os.remove(f'static/media/{current_user.name}.wav')
         num = user_progress[current_user.id]["tr2"]['question_training_number']
@@ -690,9 +644,7 @@ def training2_result():
         'title': 'Training Result'
     }
     if user_progress[current_user.id]["tr2"]["showed"]:
-        return render_template('training_rezult.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('training_rezult.html', **params)
     level_name = count / level
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -706,9 +658,7 @@ def training2_result():
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["tr2"]["showed"] = True
-    return render_template('training2_rezult.html', **params, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('training2_rezult.html', **params)
 
 
 @app.route('/training/3', methods=['GET', 'POST'])
@@ -749,9 +699,7 @@ def training3_form():
         params = {
             'question': train[num][1]
         }
-        return render_template('training3.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('training3.html', **params)
     elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
         num = user_progress[current_user.id]["tr3"]['question_training_number']
         train = user_progress[current_user.id]["tr3"]['training_program']
@@ -786,9 +734,7 @@ def training3_result():
         'level': level
     }
     if user_progress[current_user.id]["tr3"]["showed"]:
-        return render_template('training_rezult.html', **params, link_css=link_css,
-                               link_logo=link_css,
-                               link_js=link_js)
+        return render_template('training_rezult.html', **params)
     level_name = count / level
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -802,9 +748,7 @@ def training3_result():
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["tr3"]["showed"] = True
-    return render_template('training3_rezult.html', **params, link_css=link_css,
-                           link_logo=link_css,
-                           link_js=link_js)
+    return render_template('training3_rezult.html', **params)
 
 
 def set_max_question_id():
@@ -851,9 +795,6 @@ def book_view(book_id, page, word):
             pages=pages,
             click_word=word,
             translate_word=translate_word,
-            link_css=url_for("static", filename="css/style.css"),
-            link_logo=url_for("static", filename="img/logo.png"),
-            link_js=url_for("static", filename="js/script.js"),
         )
     return render_template("404.html")
 
