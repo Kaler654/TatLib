@@ -510,7 +510,7 @@ def training1_form():
             'question': train[num][0],
             'answers': train[num][2],
             'current_answer': train[num][1],
-            'title': 'Training' + train[num][0]
+            'title': 'Training'
         }
         return render_template('training1.html', **params)
     elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
