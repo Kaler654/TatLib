@@ -1,0 +1,11 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container">
+    <form action="" method="post" role="form" novalidate>
+        <label>{{question}}</label>
+        <input type="text" id="user_answer" placeholder="ответ" name="user_answer" autocomplete="off">
+        <input type="submit" value="Далее" name="next"/>
+    </form>
+</div>
+
+{% endblock %}

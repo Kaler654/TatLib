@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container">
+    <div>
+        <form class="d-flex" method="POST">
+            <input class="form-control me-2" type="text" name="field" placeholder="Поиск">
+            <input class="btn btn-outline-success" type="submit" name="search" value="поиск">
+        </form>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Слово на татарском</th>
+            <th scope="col">Слово на русском</th>
+        </tr>
+        </thead>
+        {% for word in words %}
+        <tr>
+            <td>{{ word.word }}</td>
+            <td>{{ word.word_ru }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container Form">
+    <form action="" method="post" enctype="multipart/form-data">
+        <h1 style="text-align: center;">Добавление Книги/текста</h1>
+        {{ form.hidden_tag()}}
+        <div class="row">
+            <p class="col form-floating">
+                {{ form.author(class="form-control", id="floatingInput", placeholder="текст") }}
+                {{ form.author.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
+            </p>
+        </div>
+        <div class="row">
+            <p class="col form-floating">
+                {{ form.title(class="form-control", id="floatingInput", placeholder="текст") }}
+                {{ form.title.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
+            </p>
+        </div>
+        <div class="row">
+            <p class="col">
+                {{ form.file.label(for="formFile", class="form-label", style="color: rgba(0, 0, 0, 0.7)") }}
+                {{ form.file(class="form-control", type="file", id="formFile", placeholder="фото задание (если есть)") }}
+            </p>
+        </div>
+        <div class="row">
+            <p class="col form-floating">
+                {{ form.difficult(class="form-control", id="floatingInput", placeholder="текст") }}
+                {{ form.difficult.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
+            </p>
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center">
+            <p>{{ form.submit(type="submit", class="btn btn-success") }}</p>
+        </div>
+        {% if message %}
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+        style="position: absolute; bottom: 100px; right: 20px;" data-bs-delay="2000" data-bs-autohide="false">
+            <div class="toast-header">
+                <strong class="me-auto">Ошибка</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>    
+            <div class="toast-body">
+            {{ message }}
+            </div>
+        </div>
+    {% endif %}
+    </form>
+</div>
+
+{% endblock %}

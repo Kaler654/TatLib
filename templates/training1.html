@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container">
+    <form action="" method="post" novalidate role="form">
+        <div class="question">{{ question }}</div>
+        {% for answer in answers %}
+            <input class="answer" type="radio" name="options" id="option{{ loop.index }}" value={{answer[1]}}> {{ answer[0] }}
+            <br>
+        {% endfor %}
+        <input type="submit" value="Далее" name="next"/>
+    </form>
+</div>
+
+{% endblock %}

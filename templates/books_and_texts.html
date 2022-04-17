@@ -1,0 +1,45 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container">
+    <div class="btn-toolbar my-3" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group me-2" role="group" aria-label="First group">
+            <a type="button" class="btn btn-primary" href="/add_text">добавить книгу/текст</a>
+        </div><div class="btn-group me-2" role="group" aria-label="Second group">
+            <a type="button" class="btn btn-outline-secondary disabled">Сложность</a>
+        </div>
+        <div class="btn-group me-2" role="group" aria-label="Third group">
+            <a type="button" class="btn btn-primary" href="/books_and_texts/0">Любая</a>
+            <a type="button" class="btn btn-success" href="/books_and_texts/1">Новичок</a>
+            <a type="button" class="btn btn-warning" href="/books_and_texts/2">Средний</a>
+            <a type="button" class="btn btn-danger" href="/books_and_texts/3">Профи</a>
+        </div>
+    </div>
+
+
+    <div class="my-3">
+        <form class="d-flex" method="POST">
+            <input class="form-control me-2" type="text" name="field" placeholder="Поиск">
+            <input class="btn btn-outline-success" type="submit" name="search" value="поиск"></input>
+        </form>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Сложность</th>
+            <th scope="col">название</th>
+            <th scope="col">автор</th>
+            <th scope="col">кол-во страниц</th>
+        </tr>
+        </thead>
+        {% for book in books %}
+        <tr>
+            <td>{{ book.level_id }}</td>
+            <td><a href="/read_book/{{ book.id }}/1/null">{{ book.title }}</a></td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.pages }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}
