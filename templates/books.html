@@ -19,7 +19,7 @@
         {% for book in books %}
         <tr>
             <td>{{ book.level_id }}</td>
-            <td>{{ book.title }}</td>
+            <td><a href="/read_book/{{ book.id }}/1/null">{{ book.title }}</a></td>
             <td>{{ book.author }}</td>
             <td>{{ book.pages }}</td>
         </tr>

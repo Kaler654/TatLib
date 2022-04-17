@@ -440,6 +440,9 @@ def quiz_form():
     else:
         return redirect('/register')
 
+@app.route('/trainings')
+def trainings():
+    return render_template('trainings.html')
 
 @app.route('/quiz_result')
 def quiz_result():

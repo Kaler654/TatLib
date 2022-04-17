@@ -416,6 +416,7 @@ body._lock {
     line-height: 1.6;
     letter-spacing: 1px;
 }
+
 .book__translate {
     font-size: 24px;
 }
@@ -430,11 +431,12 @@ body._lock {
 .book__p {
     display: block;
 }
+
 .book__word {
     font-size: 24px;
 }
 
-.book__word:hover{
+.book__word:hover {
     color: green;
     cursor: pointer;
 }
@@ -446,6 +448,7 @@ body._lock {
 }
 
 .page-link {
+    background-color: #313979;
 }
 
 .disabled {
@@ -495,9 +498,11 @@ ul.pagination li a:hover {
 .training1 {
     margin-top: 200px;
 }
+
 .training1__container {
     max-width: 70%;
 }
+
 .training1__content {
     display: flex;
     flex-direction: column;
@@ -505,50 +510,139 @@ ul.pagination li a:hover {
     justify-content: center;
     text-align: center;
 }
-.training1__question p{
+
+.training1__question p {
     font-size: 32px;
     margin-bottom: 100px;
 }
+
 .training1__answers {
     font-size: 24px;
     display: flex;
     justify-content: space-between;
 }
-.training1__answer {
+
+
+.submit_btn {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: 0 20px;
+    margin: 0 15px 15px 0;
+    outline: none;
+    border: none;
+    border-radius: 6px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #385898;
+    background-color: #e7f3ff;
+    cursor: pointer;
+    user-select: none;
+    appearance: none;
+    touch-action: manipulation;
+    font-size: 24px;
+    margin-top: 50px;
+    text-align: center;
+}
+
+.submit_btn:focus-visible {
+    box-shadow: 0 0 0 2px #666;
+}
+
+.submit_btn:hover {
+    background-color: #DBE7F2;
+}
+
+.submit_btn:active {
+    transform: scale(0.96);
 }
 
 .form_radio_btn {
-	display: inline-block;
-	margin-right: 10px;
+    display: inline-block;
+    margin-right: 10px;
 }
 
 .form_radio_btn label {
-	display: inline-block;
-	cursor: pointer;
-	padding: 0px 15px;
-	line-height: 34px;
-	border: 1px solid #999;
-	border-radius: 6px;
-	user-select: none;
+    display: inline-block;
+    cursor: pointer;
+    padding: 0px 15px;
+    line-height: 34px;
+    border: 1px solid #999;
+    border-radius: 6px;
+    user-select: none;
 }
 
 /* Checked */
 .form_radio_btn input[type=radio]:checked + label {
-	background: #ffe0a6;
+    background: #ffe0a6;
 }
 
 /* Hover */
 .form_radio_btn label:hover {
-	color: #666;
+    color: #666;
 }
 
-/* Disabled */
-.form_radio_btn input[type=radio]:disabled + label {
-	background: #efefef;
-	color: #666;
+.training1__result {
+    text-align: center;
+    font-size: 32px;
+    margin-top: 15%;
 }
 
-.submit_btn {
-
+.training3 {
+    margin-top: 15%;
 }
+.training3__container {
+}
+.training3__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 36px;
+}
+.training3 input {
+    font-size: 24px;
+}
+
+.training3__margin {
+    margin-bottom: 20px;
+}
+
+.list-group-item {
+    font-size: 24px;
+    margin-bottom: 25px;
+}
+
 /* ------------------------------------------------------------ */
+
+th, td {
+    font-size: 24px;
+}
+
+.homepage {
+    margin-top: 15%;
+}
+.homepage__container {
+}
+.homepage__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 36px;
+}
+.homepage__logo {
+}
+.header__logo img{
+    text-align: center;
+}
+.rounded-3 {
+}
+.homepage__text {
+}
+.homepage__btn {
+}

@@ -10,8 +10,7 @@
                 <div class="training1__answers">
                     {% for answer in answers %}
                     <div class="form_radio_btn">
-                        <input class="training1__answer" type="radio" name="options" id="option{{ loop.index }}"
-                        <label for="radio-1">{{answer[0]}}</label>
+                        <input class="answer" type="radio" name="options" id="option{{ loop.index }}" value={{answer[1]}}> {{ answer[0] }}
                     </div>
                     <br>
                     {% endfor %}
