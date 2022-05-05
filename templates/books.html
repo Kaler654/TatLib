@@ -1,24 +1,24 @@
 {% extends "base.html" %} {% block content %}
 
 <div class="container">
-    <div>
-        <form class="d-flex" method="POST">
-            <input class="form-control me-2" type="text" name="field" placeholder="Поиск">
-            <input class="btn btn-outline-success" type="submit" name="search" value="поиск">
+    <div class="my-3">
+        <form style="margin-left: 7.5%;" method="POST">
+            <input class="input_search" type="text" name="field" autocomplete="off" placeholder="Поиск">
+            <input type="submit" name="search" value=">" class="search_button"></input>
         </form>
     </div>
     <table class="table">
         <thead>
-        <tr>
-            <th scope="col">Сложность</th>
-            <th scope="col">название</th>
-            <th scope="col">автор</th>
-            <th scope="col">кол-во страниц</th>
-        </tr>
+            <tr>
+                <th scope="col">Сложность</th>
+                <th scope="col">название</th>
+                <th scope="col">автор</th>
+                <th scope="col">кол-во страниц</th>
+            </tr>
         </thead>
-        {% for book in books %}
+        {% set levels = {1: "Легкая", 2: "Средняя", 3: "Сложная" } %} {% for book in books %}
         <tr>
-            <td>{{ book.level_id }}</td>
+            <td>{{ levels[book.level_id] }}</td>
             <td><a href="/read_book/{{ book.id }}/1/null">{{ book.title }}</a></td>
             <td>{{ book.author }}</td>
             <td>{{ book.pages }}</td>

@@ -1,18 +1,26 @@
 {% extends "base.html" %} {% block content %}
 
 <div class="container">
-    <div>
-        <form class="d-flex" method="POST">
-            <input class="form-control me-2" type="text" name="field" placeholder="Поиск">
-            <input class="btn btn-outline-success" type="submit" name="search" value="поиск">
-        </form>
+    <div style="margin-left: 8%;">
+        <div style="display: inline-block; width: 48.5%;">
+            <forM method="POST">
+                <input class="input_search" type="text" name="field" autocomplete="off" placeholder="Поиск">
+                <input type="submit" name="search" value=">" class="search_button"></input>
+            </form>
+        </div>
+        <div style="display: inline-block; width: 48.5%;">
+            <form method="POST">
+                <input class="input_search" type="text" name="field2" autocomplete="off" placeholder="Поиск">
+                <input type="submit" name="search2" value=">" class="search_button"></input>
+            </form>
+        </div>
     </div>
     <table class="table">
         <thead>
-        <tr>
-            <th scope="col">Слово на татарском</th>
-            <th scope="col">Слово на русском</th>
-        </tr>
+            <tr>
+                <th scope="col">Слово на татарском</th>
+                <th scope="col">Слово на русском</th>
+            </tr>
         </thead>
         {% for word in words %}
         <tr>

@@ -1,24 +1,7 @@
 {% extends "base.html" %} {% block content %}
 
-<div class="training1">
-    <div class="training1__container">
-        <div class="training1__content">
-            <form action="" method="post" novalidate role="form">
-                <div class="training1__question">
-                    <p>Выберите правильный перевод для слова: {{ question }}</p>
-                </div>
-                <div class="training1__answers">
-                    {% for answer in answers %}
-                    <div class="form_radio_btn">
-                        <input class="answer" type="radio" name="options" id="option{{ loop.index }}" value={{answer[1]}}> {{ answer[0] }}
-                    </div>
-                    <br>
-                    {% endfor %}
-                </div>
-                <input type="submit" value="Далее" name="next" class="submit_btn"/>
-            </form>
-        </div>
-    </div>
+<div class="center-text">
+    У вас нет слов для тренировок
 </div>
 
 {% endblock %}

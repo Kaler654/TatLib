@@ -4,7 +4,7 @@ const menuBody = document.querySelector('.menu__body');
 const headerContacts = document.querySelector('.header__items');
 if (iconMenu) {
 
-    iconMenu.addEventListener("click", function (e) {
+    iconMenu.addEventListener("click", function(e) {
         document.body.classList.toggle('_lock');
         iconMenu.classList.toggle('_active');
         menuBody.classList.toggle('_active');
@@ -12,3 +12,10 @@ if (iconMenu) {
     });
 }
 
+// Курсор
+
+// const cursor = document.querySelector('.tatar__cursor');
+
+// document.addEventListener('mousemove', e => {
+//     cursor.setAttribute("style", "top: " + (e.pageY) + "px; left: " + (e.pageX) + "px;")
+// })

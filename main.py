@@ -1,33 +1,49 @@
-from flask import Flask, render_template, url_for, request
-from data import db_session
-from data.books import Book
-from data.users import User
-from data.words import Word
-from flask_login import LoginManager, logout_user, current_user
-from html_from_epub import convert
-from bs4 import BeautifulSoup
+import datetime
 import os
 import shutil
 from distutils.command.upload import upload
-from bs4 import BeautifulSoup
+from random import choice, shuffle
+
 import requests
 import sqlalchemy
-from flask import Flask, render_template, redirect, request, make_response, jsonify
-from data import db_session, books_api, users_api, words_api, levels_api, word_levels_api
-from data.users import User
-from data.words import Word
-from data.word_levels import Word_level
+from bs4 import BeautifulSoup
+from flask import (
+    Flask,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+    mixins,
+)
+from html_from_epub import convert
+
+from data import (
+    books_api,
+    db_session,
+    levels_api,
+    users_api,
+    word_levels_api,
+    words_api,
+)
+from data.books import Book
 from data.levels import Level
 from data.questions import Question
-from data.books import Book
-from forms.login import LoginForm
-from forms.register import RegisterForm
+from data.users import User
+from data.word_levels import Word_level
+from data.words import Word
 from forms.add_text import TextForm
-from flask_login import LoginManager, current_user, login_user, login_required, logout_user, mixins
-import os, shutil, datetime
-from random import shuffle, choice
-import requests
+from forms.login import LoginForm
 from forms.quiz import QuizForm
+from forms.register import RegisterForm
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "yandexlyceum_secret_key"
@@ -36,129 +52,156 @@ login_manager.init_app(app)
 
 
 def sound_the_word(word, filename):
-    r = requests.get('https://speech.tatar/synthesize_tatar_hack', params={"text": word},
-                     headers={'Content-Type': 'audio/wav'})
-    filename = f'media/{filename}.wav'
-    a = open("static/" + filename, 'wb')
+    r = requests.get(
+        "https://speech.tatar/synthesize_tatar_hack",
+        params={"text": word},
+        headers={"Content-Type": "audio/wav"},
+    )
+    filename = f"media/{filename}.wav"
+    a = open("static/" + filename, "wb")
     a.write(r.content)
     a.close()
     return filename
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config["SECRET_KEY"] = "yandexlyceum_secret_key"
 login_manager = LoginManager()
 login_manager.init_app(app)
 user_progress = {}
 max_question_id = 1
 quiz_analyze_session = None
-table_stage2time = {
-    0: 0,
-    1: 1,
-    2: 3,
-    3: 5,
-    4: 6,
-    5: 13,
-    6: 28,
-    7: 58,
-    8: 118
-}
+table_stage2time = {0: 0, 1: 1, 2: 3, 3: 5, 4: 6, 5: 13, 6: 28, 7: 58, 8: 118}
 
 
 def training_dict():
-    now_time = datetime.datetime.now()
-    final_dict = []
-    wordlist = list(quiz_analyze_session.query(Word).all())
-    userwordlist = list(quiz_analyze_session.query(Word).filter(Word.id.in_(
-        [int(i) for i in current_user.words.split(',')])).all())
-    shuffle(wordlist)
-    shuffle(userwordlist)
-    print(userwordlist)
-    for word in range(len(userwordlist)):
-        word_level = quiz_analyze_session.query(Word_level).filter(Word_level.word_id == userwordlist[word].id,
-                                                                   Word_level.user_id == current_user.id).first()
-        date = word_level.date
-        stage = word_level.word_level
-        if stage == 8:
-            quiz_analyze_session.delete(userwordlist[word], word_level)
-            quiz_analyze_session.commit()
-        final_dict.append([userwordlist[word].word])
-        final_dict[word].append(userwordlist[word].word_ru)
-        final_dict[word].append([userwordlist[word].word_ru])
-        while len(final_dict[word][2]) < 4:
-            ch = choice(wordlist)
-            try_list = [i[0] for i in final_dict[word][2]]
-            if ch.word not in try_list:
-                final_dict[word][2].append(ch.word_ru)
-        shuffle(final_dict[word][2])
-        for i in range(len(final_dict[word][2])):
-            ind = 1 if final_dict[word][2][i] == final_dict[word][1] else 0
-            final_dict[word][2][i] = (final_dict[word][2][i], ind)
-    return final_dict
+    try:
+        now_time = datetime.datetime.now()
+        final_dict = []
+        wordlist = list(quiz_analyze_session.query(Word).all())
+        userwordlist = list(
+            quiz_analyze_session.query(Word)
+            .filter(Word.id.in_([int(i) for i in current_user.words.split(",")]))
+            .all()
+        )
+        shuffle(wordlist)
+        shuffle(userwordlist)
+        for word in range(len(userwordlist)):
+            word_level = (
+                quiz_analyze_session.query(Word_level)
+                .filter(
+                    Word_level.word_id == userwordlist[word].id,
+                    Word_level.user_id == current_user.id,
+                )
+                .first()
+            )
+            date = word_level.date
+            stage = word_level.word_level
+            if stage == 8:
+                quiz_analyze_session.delete(userwordlist[word], word_level)
+                quiz_analyze_session.commit()
+            final_dict.append([userwordlist[word].word])
+            final_dict[word].append(userwordlist[word].word_ru)
+            final_dict[word].append([userwordlist[word].word_ru])
+            while len(final_dict[word][2]) < 4:
+                ch = choice(wordlist)
+                try_list = [i[0] for i in final_dict[word][2]]
+                if ch.word not in try_list:
+                    final_dict[word][2].append(ch.word_ru)
+            shuffle(final_dict[word][2])
+            for i in range(len(final_dict[word][2])):
+                ind = 1 if final_dict[word][2][i] == final_dict[word][1] else 0
+                final_dict[word][2][i] = (final_dict[word][2][i], ind)
+        return final_dict
+    except Exception:
+        return []
 
 
 def training2_dict():
-    now_time = datetime.datetime.now()
-    final_dict = []
-    wordlist = list(quiz_analyze_session.query(Word).all())
-    userwordlist = list(quiz_analyze_session.query(Word).filter(Word.id.in_(
-        [int(i) for i in current_user.words.split(',')])).all())
-    shuffle(wordlist)
-    shuffle(userwordlist)
-    for word in range(len(userwordlist)):
-        word_level = quiz_analyze_session.query(Word_level).filter(Word_level.word_id == userwordlist[word].id,
-                                                                   Word_level.user_id == current_user.id).first()
-        date = word_level.date
-        stage = word_level.word_level
-        if stage == 8:
-            quiz_analyze_session.delete(userwordlist[word], word_level)
-            quiz_analyze_session.commit()
-        final_dict.append([userwordlist[word].word])
-        final_dict[word].append(userwordlist[word].word_ru)
-        final_dict[word].append([userwordlist[word].word])
-        while len(final_dict[word][2]) < 4:
-            ch = choice(wordlist)
-            try_list = [i[0] for i in final_dict[word][2]]
-            if ch.word not in try_list:
-                final_dict[word][2].append(ch.word)
-        shuffle(final_dict[word][2])
-        for i in range(len(final_dict[word][2])):
-            ind = 1 if final_dict[word][2][i] == final_dict[word][1] else 0
-            final_dict[word][2][i] = (final_dict[word][2][i], ind)
-    return final_dict
+    try:
+        now_time = datetime.datetime.now()
+        final_dict = []
+        wordlist = list(quiz_analyze_session.query(Word).all())
+        userwordlist = list(
+            quiz_analyze_session.query(Word)
+            .filter(Word.id.in_([int(i) for i in current_user.words.split(",")]))
+            .all()
+        )
+        shuffle(wordlist)
+        shuffle(userwordlist)
+        for word in range(len(userwordlist)):
+            word_level = (
+                quiz_analyze_session.query(Word_level)
+                .filter(
+                    Word_level.word_id == userwordlist[word].id,
+                    Word_level.user_id == current_user.id,
+                )
+                .first()
+            )
+            date = word_level.date
+            stage = word_level.word_level
+            if stage == 8:
+                quiz_analyze_session.delete(userwordlist[word], word_level)
+                quiz_analyze_session.commit()
+            final_dict.append([userwordlist[word].word])
+            final_dict[word].append(userwordlist[word].word_ru)
+            final_dict[word].append([userwordlist[word].word])
+            while len(final_dict[word][2]) < 4:
+                ch = choice(wordlist)
+                try_list = [i[0] for i in final_dict[word][2]]
+                if ch.word not in try_list:
+                    final_dict[word][2].append(ch.word)
+            shuffle(final_dict[word][2])
+            for i in range(len(final_dict[word][2])):
+                ind = 1 if final_dict[word][2][i] == final_dict[word][1] else 0
+                final_dict[word][2][i] = (final_dict[word][2][i], ind)
+        return final_dict
+    except Exception:
+        return []
 
 
 def training3_dict():
-    now_time = datetime.datetime.now()
-    final_dict = []
-    wordlist = list(quiz_analyze_session.query(Word).all())
-    userwordlist = list(quiz_analyze_session.query(Word).filter(Word.id.in_(
-        [int(i) for i in current_user.words.split(',')])).all())
-    shuffle(wordlist)
-    shuffle(userwordlist)
-    for word in range(len(userwordlist)):
-        word_level = quiz_analyze_session.query(Word_level).filter(Word_level.word_id == userwordlist[word].id,
-                                                                   Word_level.user_id == current_user.id).first()
-        date = word_level.date
-        stage = word_level.word_level
-        if stage == 8:
-            quiz_analyze_session.delete(userwordlist[word], word_level)
-            quiz_analyze_session.commit()
-        shuffled_word = list(userwordlist[word].word)
-        shuffle(shuffled_word)
-        final_dict.append([userwordlist[word].word, ''.join(shuffled_word)])
-    return final_dict
+    try:
+        now_time = datetime.datetime.now()
+        final_dict = []
+        wordlist = list(quiz_analyze_session.query(Word).all())
+        userwordlist = list(
+            quiz_analyze_session.query(Word)
+            .filter(Word.id.in_([int(i) for i in current_user.words.split(",")]))
+            .all()
+        )
+        shuffle(wordlist)
+        shuffle(userwordlist)
+        for word in range(len(userwordlist)):
+            word_level = (
+                quiz_analyze_session.query(Word_level)
+                .filter(
+                    Word_level.word_id == userwordlist[word].id,
+                    Word_level.user_id == current_user.id,
+                )
+                .first()
+            )
+            date = word_level.date
+            stage = word_level.word_level
+            if stage == 8:
+                quiz_analyze_session.delete(userwordlist[word], word_level)
+                quiz_analyze_session.commit()
+            shuffled_word = list(userwordlist[word].word)
+            shuffle(shuffled_word)
+            final_dict.append([userwordlist[word].word, "".join(shuffled_word)])
+        return final_dict
+    except Exception:
+        return []
 
 
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ['epub']
+    return "." in filename and filename.rsplit(".", 1)[1] in ["epub"]
 
 
 def to_normal_words(html_str, delimitel):
     try:
         ind = html_str.index(delimitel) + len(delimitel) + 1
-        final_str = html_str[ind: -len(delimitel) - 3]
+        final_str = html_str[ind : -len(delimitel) - 3]
         return final_str
     except Exception as error:
         return None
@@ -212,16 +255,16 @@ def result_word(word):
     if word != "null":
         dictionary = translate_tat_to_rus(word)
         if (
-                "main_translation" in dictionary
-                and dictionary["main_translation"] is not None
+            "main_translation" in dictionary
+            and dictionary["main_translation"] is not None
         ):
             translate_word = (
                 dictionary["main_translation"]
-                    .replace(".", "")
-                    .replace("?", "")
-                    .replace("!", "")
-                    .replace(",", "")
-                    .lower()
+                .replace(".", "")
+                .replace("?", "")
+                .replace("!", "")
+                .replace(",", "")
+                .lower()
             )
         else:
             translate_word = "Перевод отсутствует"
@@ -251,15 +294,15 @@ def index():
 
 @app.errorhandler(401)
 def not_found(error):
-    return redirect('/register')
+    return redirect("/register")
 
 
 @app.errorhandler(404)
 def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
+    return make_response(jsonify({"error": "Not found"}), 404)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -268,26 +311,31 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
-        return render_template('login.html',
-                               message="Неправильный логин или пароль",
-                               form=form)
-    return render_template('login.html', title='Авторизация', form=form
-                           )
+        return render_template(
+            "login.html", message="Неправильный логин или пароль", form=form
+        )
+    return render_template("login.html", title="Авторизация", form=form)
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route("/register", methods=["GET", "POST"])
 def reqister():
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="Пароли не совпадают")
+            return render_template(
+                "register.html",
+                title="Регистрация",
+                form=form,
+                message="Пароли не совпадают",
+            )
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="Такой пользователь уже есть")
+            return render_template(
+                "register.html",
+                title="Регистрация",
+                form=form,
+                message="Такой пользователь уже есть",
+            )
         user = User(
             name=form.name.data,
             email=form.email.data,
@@ -295,73 +343,113 @@ def reqister():
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
-        return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form)
+        return redirect("/login")
+    return render_template("register.html", title="Регистрация", form=form)
 
 
-@app.route('/settings')
+@app.route("/settings")
 @login_required
 def settings():
-    return render_template('settings.html')
+    return render_template("settings.html")
 
 
-@app.route('/profile')
+@app.route("/profile")
 @login_required
 def profile():
-    return render_template('profile.html')
+    created_time = datetime.datetime.strptime(str(current_user.created_date)[:-10], "%Y-%m-%d %H:%M")
+    using_time = str(datetime.datetime.now() - created_time)[:-10].replace('days,', 'дн')
+    print(using_time)
+    using_time = using_time[:-3] + "ч " + using_time[-2:] + "мин"
+    print(using_time)
+    items_list = [
+        ["Имя", current_user.name], ["Почта", current_user.email],
+        ["Телеграм", current_user.telegram_id if current_user.telegram_id is not None else "Не указан"],
+        ["Дата создания", str(created_time)],
+        ["Время использования", using_time],
+        ["Кол-во слов", len(current_user.words.split(","))],
+        ]
+    return render_template("profile.html", items_list=items_list)
 
 
-@app.route('/books_and_texts/<int:val>', methods=['GET', 'POST'])
+@app.route("/books_and_texts/<int:val>", methods=["GET", "POST"])
 @login_required
 def books_and_texts(val):
     db_sess = db_session.create_session()
-    if request.method == 'POST':
+    if request.method == "POST":
         books = db_sess.query(Book).filter(
-            (Book.title.like(f"%{request.form.get('field')}%")) | (Book.author.like(f"%{request.form.get('field')}%")))
-        return render_template('books_and_texts.html', title='книги и тексты', books=books)
+            (Book.title.like(f"%{request.form.get('field')}%"))
+            | (Book.author.like(f"%{request.form.get('field')}%"))
+        )
+        return render_template(
+            "books_and_texts.html", title="книги и тексты", books=books
+        )
     if val == 0:
         books = db_sess.query(Book).all()
     else:
         books = db_sess.query(Book).filter(Book.level_id == val).all()
-    return render_template('books_and_texts.html', title='книги и тексты', books=books)
+    return render_template("books_and_texts.html", title="книги и тексты", books=books)
 
 
-@app.route('/words', methods=['GET', 'POST'])
+@app.route("/words", methods=["GET", "POST"])
 @login_required
 def words():
     db_sess = db_session.create_session()
-    user_words_id = db_sess.query(User.words).filter(User.id == current_user.id).first()[0].split(',')
-    if request.method == 'POST':
-        words = db_sess.query(Word).filter(
-            (Word.word.like(f"%{request.form.get('field')}%")) | (Word.word_ru.like(f"%{request.form.get('field')}%")),
-            Word.id.in_(list(map(int, user_words_id))))
-        return render_template('words.html', title='мои слова', words=words)
-    user_words_id = \
-        db_sess.query(User.words).filter(User.id == current_user.id,
-                                         Word.id.in_(list(map(int, user_words_id)))).first()[
-            0].split(',')
+    user_words_id = (
+        db_sess.query(User.words)
+        .filter(User.id == current_user.id)
+        .first()[0]
+        .split(",")
+    )
+    if request.method == "POST":
+        if "search2" in request.form:
+            words = db_sess.query(Word).filter(
+                (Word.word.like(f"%{request.form.get('field2')}%")),
+                Word.id.in_(list(map(int, user_words_id))),
+            )
+            return render_template("words.html", title="мои слова", words=words)
+        words = db_sess.query(Word).filter((Word.word_ru.like(f"%{request.form.get('field')}%")),
+            Word.id.in_(list(map(int, user_words_id))),
+        )
+        return render_template("words.html", title="мои слова", words=words)
+    user_words_id = (
+        db_sess.query(User.words)
+        .filter(User.id == current_user.id, Word.id.in_(list(map(int, user_words_id))))
+        .first()[0]
+        .split(",")
+    )
     words = db_sess.query(Word).filter(Word.id.in_(list(map(int, user_words_id)))).all()
-    return render_template('words.html', title='мои слова', words=words)
+    return render_template("words.html", title="мои слова", words=words)
 
 
-@app.route('/books', methods=['GET', 'POST'])
+@app.route("/books", methods=["GET", "POST"])
 @login_required
 def books():
     db_sess = db_session.create_session()
-    if request.method == 'POST':
-        books = db_sess.query(Book).filter(Book.user_author_id == current_user.id,
-                                           Book.title.like(f"%{request.form.get('field')}%")).all()
-        return render_template('books.html', title='мои слова', books=books)
+    if request.method == "POST":
+        books = (
+            db_sess.query(Book)
+            .filter(
+                Book.user_author_id == current_user.id,
+                Book.title.like(f"%{request.form.get('field')}%"),
+            )
+            .all()
+        )
+        return render_template("books.html", title="мои слова", books=books)
     books = db_sess.query(Book).filter(Book.user_author_id == current_user.id).all()
-    return render_template('books.html', title='мои слова', books=books)
+    return render_template("books.html", title="мои слова", books=books)
 
 
-@app.route('/add_text', methods=['GET', 'POST'])
+@app.route("/add_text", methods=["GET", "POST"])
 @login_required
 def add_text():
     form = TextForm()
     if form.validate_on_submit():
-        if form.author.data and form.title.data and form.file.data and form.difficult.data:
+        if (
+            form.author.data
+            and form.title.data
+            and form.file.data
+            and form.difficult.data
+        ):
             db_sess = db_session.create_session()
             max_id = db_sess.query(Book).order_by(Book.id).all()
             if not max_id:
@@ -374,12 +462,12 @@ def add_text():
             book.title = form.title.data
             book.level_id = form.difficult.data
             if allowed_file(form.file.data.filename):
-                f = request.files['file']
+                f = request.files["file"]
                 path = f"books\{max_id}.epub"
                 f.save(path)
                 os.mkdir(f"books\{max_id}")
                 shutil.move(f"books\{max_id}.epub", f"books\{max_id}\{max_id}.epub")
-            convert(f'books/{max_id}/{max_id}.epub')
+            convert(f"books/{max_id}/{max_id}.epub")
             shutil.move(f"{max_id}/", f"books/{max_id}/")
             book.pages = len(os.listdir(f"books/{max_id}/{max_id}")) - 2
             book.user_author_id = current_user.id
@@ -387,77 +475,111 @@ def add_text():
             db_sess.add(book)
             db_sess.commit()
             return redirect("/books_and_texts/0")
-        return render_template('add_text.html',
-                               message="не все поля заполнены",
-                               form=form)
-    return render_template('add_text.html', title='добавление текста', form=form)
+        return render_template(
+            "add_text.html", message="не все поля заполнены", form=form
+        )
+    return render_template("add_text.html", title="добавление текста", form=form)
 
 
-@app.route('/quiz', methods=['GET', 'POST'])
+@app.route("/quiz", methods=["GET", "POST"])
 def quiz_form():
-    if request.method == 'GET' and not isinstance(current_user, mixins.AnonymousUserMixin):
+    if request.method == "GET" and not isinstance(
+        current_user, mixins.AnonymousUserMixin
+    ):
         try:
-            if user_progress[current_user.id]["quiz"]["question_number"] == max_question_id + 1:
+            if (
+                user_progress[current_user.id]["quiz"]["question_number"]
+                == max_question_id + 1
+            ):
                 try:
-                    user_progress[current_user.id]["quiz"] = {'id': current_user.id, 'question_number': 1, 'count': 0,
-                                                              'showed': False}
+                    user_progress[current_user.id]["quiz"] = {
+                        "id": current_user.id,
+                        "question_number": 1,
+                        "count": 0,
+                        "showed": False,
+                    }
                 except KeyError:
                     user_progress[current_user.id] = {}
-                    user_progress[current_user.id]["quiz"] = {'id': current_user.id, 'question_number': 1, 'count': 0,
-                                                              'showed': False}
+                    user_progress[current_user.id]["quiz"] = {
+                        "id": current_user.id,
+                        "question_number": 1,
+                        "count": 0,
+                        "showed": False,
+                    }
         except:
             try:
-                user_progress[current_user.id]["quiz"] = {'id': current_user.id, 'question_number': 1, 'count': 0,
-                                                          'showed': False}
+                user_progress[current_user.id]["quiz"] = {
+                    "id": current_user.id,
+                    "question_number": 1,
+                    "count": 0,
+                    "showed": False,
+                }
             except KeyError:
                 user_progress[current_user.id] = {}
-                user_progress[current_user.id]["quiz"] = {'id': current_user.id, 'question_number': 1, 'count': 0,
-                                                          'showed': False}
+                user_progress[current_user.id]["quiz"] = {
+                    "id": current_user.id,
+                    "question_number": 1,
+                    "count": 0,
+                    "showed": False,
+                }
         question_number = user_progress[current_user.id]["quiz"]["question_number"]
-        quest = quiz_analyze_session.query(Question).filter(Question.id == question_number).first()
-        answers_ = [int(i) for i in str(quest.answers).split(',')]
+        quest = (
+            quiz_analyze_session.query(Question)
+            .filter(Question.id == question_number)
+            .first()
+        )
+        answers_ = [int(i) for i in str(quest.answers).split(",")]
         answers_objects = []
         for i in quiz_analyze_session.query(Word):
             if i.id in answers_:
                 answers_objects.append(i.word)
-        current_answer = quiz_analyze_session.query(Word).filter(Word.id == quest.correct_answer).first().word
+        current_answer = (
+            quiz_analyze_session.query(Word)
+            .filter(Word.id == quest.correct_answer)
+            .first()
+            .word
+        )
         form = QuizForm(quest.question, answers_objects, current_answer)
         params = {
-            'question': form.question,
-            'answers': form.answers_list,
-            'current_answer': user_progress[current_user.id]["quiz"]["question_number"],
-            'title': 'Quiz Answer' + str(user_progress[current_user.id]["quiz"]["question_number"])
+            "question": form.question,
+            "answers": form.answers_list,
+            "current_answer": user_progress[current_user.id]["quiz"]["question_number"],
+            "title": "Quiz Answer"
+            + str(user_progress[current_user.id]["quiz"]["question_number"]),
         }
-        return render_template('quiz.html', **params)
-    elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
+        return render_template("quiz.html", **params)
+    elif request.method == "POST" and type(current_user) != "AnonymousUserMixin":
         if request.form is not None:
             if len(request.form) > 1:
                 user_progress[current_user.id]["quiz"]["question_number"] += 1
-                user_progress[current_user.id]["quiz"]["count"] += int(request.form["options"])
-        if user_progress[current_user.id]["quiz"]["question_number"] == max_question_id + 1:
-            return redirect('/quiz_result')
-        return redirect('/quiz')
+                user_progress[current_user.id]["quiz"]["count"] += int(
+                    request.form["options"]
+                )
+        if (
+            user_progress[current_user.id]["quiz"]["question_number"]
+            == max_question_id + 1
+        ):
+            return redirect("/quiz_result")
+        return redirect("/quiz")
     else:
-        return redirect('/register')
+        return redirect("/register")
 
-@app.route('/trainings')
+
+@app.route("/trainings")
 def trainings():
-    return render_template('trainings.html')
+    return render_template("trainings.html")
 
-@app.route('/quiz_result')
+
+@app.route("/quiz_result")
 def quiz_result():
     try:
         count = user_progress[current_user.id]["quiz"]["count"]
         level_name = user_progress[current_user.id]["quiz"]["question_number"] - 1
     except:
-        return redirect('/quiz')
-    params = {
-        'count': count,
-        'level': level_name,
-        'title': 'Quiz Result'
-    }
+        return redirect("/quiz")
+    params = {"count": count, "level": level_name, "title": "Quiz Result"}
     if user_progress[current_user.id]["quiz"]["showed"]:
-        return render_template('quiz_rezult.html', **params)
+        return render_template("quiz_rezult.html", **params)
     level_name = count / level_name
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -467,91 +589,129 @@ def quiz_result():
         level_name = "Профи"
     params["level_name"] = level_name
     user = quiz_analyze_session.query(User).filter(User.id == current_user.id).first()
-    id_ = quiz_analyze_session.query(Level).filter(Level.name == level_name).first().level_id
+    id_ = (
+        quiz_analyze_session.query(Level)
+        .filter(Level.name == level_name)
+        .first()
+        .level_id
+    )
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["quiz"]["showed"] = True
-    return render_template('quiz_rezult.html', **params)
+    return render_template("quiz_rezult.html", **params)
 
 
-@app.route('/training/1', methods=['GET', 'POST'])
+@app.route("/training/1", methods=["GET", "POST"])
 def training1_form():
-    if request.method == 'GET' and not isinstance(current_user, mixins.AnonymousUserMixin):
+    if request.method == "GET" and not isinstance(
+        current_user, mixins.AnonymousUserMixin
+    ):
         try:
-            if user_progress[current_user.id]["tr1"]["question_training_number"] == \
-                    user_progress[current_user.id]["tr1"]['train_len']:
+            print(user_progress)
+            if (
+                user_progress[current_user.id]["tr1"]["question_training_number"]
+                == user_progress[current_user.id]["tr1"]["train_len"]
+            ):
                 try:
-                    user_progress[current_user.id]["tr1"] = {'id': current_user.id, 'question_training_number': 0,
-                                                             'count_training': 0, 'showed': False,
-                                                             'training_program': training_dict()}
-                    user_progress[current_user.id]["tr1"]['train_len'] = len(
-                        user_progress[current_user.id]["tr1"]['training_program'])
+                    user_progress[current_user.id]["tr1"] = {
+                        "id": current_user.id,
+                        "question_training_number": 0,
+                        "count_training": 0,
+                        "showed": False,
+                        "training_program": training_dict(),
+                    }
+                    user_progress[current_user.id]["tr1"]["train_len"] = len(
+                        user_progress[current_user.id]["tr1"]["training_program"]
+                    )
                 except KeyError:
                     user_progress[current_user.id] = {}
-                    user_progress[current_user.id]["tr1"] = {'id': current_user.id, 'question_training_number': 0,
-                                                             'count_training': 0, 'showed': False,
-                                                             'training_program': training_dict()}
-                    user_progress[current_user.id]["tr1"]['train_len'] = len(
-                        user_progress[current_user.id]["tr1"]['training_program'])
+                    user_progress[current_user.id]["tr1"] = {
+                        "id": current_user.id,
+                        "question_training_number": 0,
+                        "count_training": 0,
+                        "showed": False,
+                        "training_program": training_dict(),
+                    }
+                    user_progress[current_user.id]["tr1"]["train_len"] = len(
+                        user_progress[current_user.id]["tr1"]["training_program"]
+                    )
         except:
             try:
-                user_progress[current_user.id]["tr1"] = {'id': current_user.id, 'question_training_number': 0,
-                                                         'count_training': 0, 'showed': False,
-                                                         'training_program': training_dict()}
-                user_progress[current_user.id]["tr1"]['train_len'] = len(
-                    user_progress[current_user.id]["tr1"]['training_program'])
+                user_progress[current_user.id]["tr1"] = {
+                    "id": current_user.id,
+                    "question_training_number": 0,
+                    "count_training": 0,
+                    "showed": False,
+                    "training_program": training_dict(),
+                }
+                user_progress[current_user.id]["tr1"]["train_len"] = len(
+                    user_progress[current_user.id]["tr1"]["training_program"]
+                )
             except KeyError:
                 user_progress[current_user.id] = {}
-                user_progress[current_user.id]["tr1"] = {'id': current_user.id, 'question_training_number': 0,
-                                                         'count_training': 0, 'showed': False,
-                                                         'training_program': training_dict()}
-                user_progress[current_user.id]["tr1"]['train_len'] = len(
-                    user_progress[current_user.id]["tr1"]['training_program'])
-        num = user_progress[current_user.id]["tr1"]['question_training_number']
-        train = user_progress[current_user.id]["tr1"]['training_program']
+                user_progress[current_user.id]["tr1"] = {
+                    "id": current_user.id,
+                    "question_training_number": 0,
+                    "count_training": 0,
+                    "showed": False,
+                    "training_program": training_dict(),
+                }
+                user_progress[current_user.id]["tr1"]["train_len"] = len(
+                    user_progress[current_user.id]["tr1"]["training_program"]
+                )
+        train = user_progress[current_user.id]["tr1"]["training_program"]
+        if not train:
+            return render_template("no_words.html")
+        num = user_progress[current_user.id]["tr1"]["question_training_number"]
         params = {
-            'question': train[num][0],
-            'answers': train[num][2],
-            'current_answer': train[num][1],
-            'title': 'Training'
+            "question": train[num][0],
+            "answers": train[num][2],
+            "current_answer": train[num][1],
+            "title": "Training",
         }
-        return render_template('training1.html', **params)
-    elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
-        num = user_progress[current_user.id]["tr1"]['question_training_number']
-        train = user_progress[current_user.id]["tr1"]['training_program']
+        return render_template("training1.html", **params)
+    elif request.method == "POST" and type(current_user) != "AnonymousUserMixin":
+        num = user_progress[current_user.id]["tr1"]["question_training_number"]
+        train = user_progress[current_user.id]["tr1"]["training_program"]
         if request.form is not None:
             if len(request.form) > 1:
                 user_progress[current_user.id]["tr1"]["question_training_number"] += 1
-                user_progress[current_user.id]["tr1"]["count_training"] += int(request.form["options"])
-                last_word = quiz_analyze_session.query(Word).filter(Word.word == train[num][0]).first()
-                if int(request.form["options"]) == 1:  # int(request.form["options"]) [0 or 1] правильность слова
+                user_progress[current_user.id]["tr1"]["count_training"] += int(
+                    request.form["radio"]
+                )
+                last_word = (
+                    quiz_analyze_session.query(Word)
+                    .filter(Word.word == train[num][0])
+                    .first()
+                )
+                if (
+                    int(request.form["radio"]) == 1
+                ):  # int(request.form["radio"]) [0 or 1] правильность слова
                     # last_word.level += 1
                     pass
-                elif int(request.form["options"]) == 0:
+                elif int(request.form["radio"]) == 0:
                     last_word.level = 0
                 quiz_analyze_session.commit()
-        if user_progress[current_user.id]["tr1"]['question_training_number'] == user_progress[current_user.id]["tr1"][
-            'train_len']:
-            return redirect('/training/1_result')
-        return redirect('/training/1')
+        if (
+            user_progress[current_user.id]["tr1"]["question_training_number"]
+            == user_progress[current_user.id]["tr1"]["train_len"]
+        ):
+            return redirect("/training/1_result")
+        return redirect("/training/1")
     else:
-        return redirect('/register')
+        return redirect("/register")
 
 
-@app.route('/training/1_result')
+@app.route("/training/1_result")
 def training1_result():
     try:
         count = user_progress[current_user.id]["tr1"]["count_training"]
         level = user_progress[current_user.id]["tr1"]["question_training_number"]
     except:
-        return redirect('/training/1')
-    params = {
-        'count': count,
-        'level': level,
-        'title': 'Training Result'
-    }
+        return redirect("/training/1")
+    params = {"count": count, "level": level, "title": "Training Result"}
     if user_progress[current_user.id]["tr1"]["showed"]:
-        return render_template('training1_rezult.html', **params)
+        return render_template("training1_rezult.html", **params)
     level_name = count / level
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -561,93 +721,126 @@ def training1_result():
         level_name = "Профи"
     params["level_name"] = level_name
     user = quiz_analyze_session.query(User).filter(User.id == current_user.id).first()
-    id_ = quiz_analyze_session.query(Level).filter(Level.name == level_name).first().level_id
+    id_ = (
+        quiz_analyze_session.query(Level)
+        .filter(Level.name == level_name)
+        .first()
+        .level_id
+    )
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["tr1"]["showed"] = True
-    return render_template('training1_rezult.html', **params)
+    return render_template("training1_rezult.html", **params)
 
 
-@app.route('/training/2', methods=['GET', 'POST'])
+@app.route("/training/2", methods=["GET", "POST"])
 def training2_form():
-    if request.method == 'GET' and not isinstance(current_user, mixins.AnonymousUserMixin):
+    if request.method == "GET" and not isinstance(
+        current_user, mixins.AnonymousUserMixin
+    ):
         try:
-            if user_progress[current_user.id]["tr2"]["question_training_number"] == \
-                    user_progress[current_user.id]["tr2"]['train_len']:
+            if (
+                user_progress[current_user.id]["tr2"]["question_training_number"]
+                == user_progress[current_user.id]["tr2"]["train_len"]
+            ):
                 try:
-                    user_progress[current_user.id]["tr2"] = {'id': current_user.id, 'question_training_number': 0,
-                                                             'count_training': 0, 'showed': False,
-                                                             'training_program': training2_dict()}
-                    user_progress[current_user.id]["tr2"]['train_len'] = len(
-                        user_progress[current_user.id]["tr2"]['training_program'])
+                    user_progress[current_user.id]["tr2"] = {
+                        "id": current_user.id,
+                        "question_training_number": 0,
+                        "count_training": 0,
+                        "showed": False,
+                        "training_program": training2_dict(),
+                    }
+                    user_progress[current_user.id]["tr2"]["train_len"] = len(
+                        user_progress[current_user.id]["tr2"]["training_program"]
+                    )
                 except KeyError:
                     user_progress[current_user.id] = {}
-                    user_progress[current_user.id]["tr2"] = {'id': current_user.id, 'question_training_number': 0,
-                                                             'count_training': 0, 'showed': False,
-                                                             'training_program': training2_dict()}
-                    user_progress[current_user.id]["tr2"]['train_len'] = len(
-                        user_progress[current_user.id]["tr2"]['training_program'])
+                    user_progress[current_user.id]["tr2"] = {
+                        "id": current_user.id,
+                        "question_training_number": 0,
+                        "count_training": 0,
+                        "showed": False,
+                        "training_program": training2_dict(),
+                    }
+                    user_progress[current_user.id]["tr2"]["train_len"] = len(
+                        user_progress[current_user.id]["tr2"]["training_program"]
+                    )
         except:
             try:
-                user_progress[current_user.id]["tr2"] = {'id': current_user.id, 'question_training_number': 0,
-                                                         'count_training': 0, 'showed': False,
-                                                         'training_program': training2_dict()}
-                user_progress[current_user.id]["tr2"]['train_len'] = len(
-                    user_progress[current_user.id]["tr2"]['training_program'])
+                user_progress[current_user.id]["tr2"] = {
+                    "id": current_user.id,
+                    "question_training_number": 0,
+                    "count_training": 0,
+                    "showed": False,
+                    "training_program": training2_dict(),
+                }
+                user_progress[current_user.id]["tr2"]["train_len"] = len(
+                    user_progress[current_user.id]["tr2"]["training_program"]
+                )
             except KeyError:
                 user_progress[current_user.id] = {}
-                user_progress[current_user.id]["tr2"] = {'id': current_user.id, 'question_training_number': 0,
-                                                         'count_training': 0, 'showed': False,
-                                                         'training_program': training2_dict()}
-                user_progress[current_user.id]["tr2"]['train_len'] = len(
-                    user_progress[current_user.id]["tr2"]['training_program'])
-        num = user_progress[current_user.id]["tr2"]['question_training_number']
-        train = user_progress[current_user.id]["tr2"]['training_program']
+                user_progress[current_user.id]["tr2"] = {
+                    "id": current_user.id,
+                    "question_training_number": 0,
+                    "count_training": 0,
+                    "showed": False,
+                    "training_program": training2_dict(),
+                }
+                user_progress[current_user.id]["tr2"]["train_len"] = len(
+                    user_progress[current_user.id]["tr2"]["training_program"]
+                )
+        train = user_progress[current_user.id]["tr2"]["training_program"]
+        if not train:
+            return render_template("no_words.html")
+        num = user_progress[current_user.id]["tr2"]["question_training_number"]
         fn = sound_the_word(train[num][0], current_user.name)
-        params = {
-            'answers': train[num][2],
-            'current_answer': train[num][1],
-            'aud': fn
-        }
+        params = {"answers": train[num][2], "current_answer": train[num][1], "aud": fn}
         print(f"../static/media/{current_user.name}.wav")
-        return render_template('training2.html', **params)
-    elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
-        os.remove(f'static/media/{current_user.name}.wav')
-        num = user_progress[current_user.id]["tr2"]['question_training_number']
-        train = user_progress[current_user.id]["tr2"]['training_program']
+        return render_template("training2.html", **params)
+    elif request.method == "POST" and type(current_user) != "AnonymousUserMixin":
+        os.remove(f"static/media/{current_user.name}.wav")
+        num = user_progress[current_user.id]["tr2"]["question_training_number"]
+        train = user_progress[current_user.id]["tr2"]["training_program"]
         if request.form is not None:
             if len(request.form) > 1:
                 user_progress[current_user.id]["tr2"]["question_training_number"] += 1
-                user_progress[current_user.id]["tr2"]["count_training"] += int(request.form["options"])
-                last_word = quiz_analyze_session.query(Word).filter(Word.word == train[num][0]).first()
-                if int(request.form["options"]) == 1:  # int(request.form["options"]) [0 or 1] правильность слова
+                user_progress[current_user.id]["tr2"]["count_training"] += int(
+                    request.form["options"]
+                )
+                last_word = (
+                    quiz_analyze_session.query(Word)
+                    .filter(Word.word == train[num][0])
+                    .first()
+                )
+                if (
+                    int(request.form["options"]) == 1
+                ):  # int(request.form["options"]) [0 or 1] правильность слова
                     # last_word.level += 1
                     pass
                 elif int(request.form["options"]) == 0:
                     last_word.level = 0
                 quiz_analyze_session.commit()
-        if user_progress[current_user.id]["tr2"]['question_training_number'] == user_progress[current_user.id]["tr2"][
-            'train_len']:
-            return redirect('/training/2_result')
-        return redirect('/training/2')
+        if (
+            user_progress[current_user.id]["tr2"]["question_training_number"]
+            == user_progress[current_user.id]["tr2"]["train_len"]
+        ):
+            return redirect("/training/2_result")
+        return redirect("/training/2")
     else:
-        return redirect('/register')
+        return redirect("/register")
 
 
-@app.route('/training/2_result')
+@app.route("/training/2_result")
 def training2_result():
     try:
         count = user_progress[current_user.id]["tr2"]["count_training"]
         level = user_progress[current_user.id]["tr2"]["question_training_number"]
     except:
-        return redirect('/training/2')
-    params = {
-        'count': count,
-        'level': level,
-        'title': 'Training Result'
-    }
+        return redirect("/training/2")
+    params = {"count": count, "level": level, "title": "Training Result"}
     if user_progress[current_user.id]["tr2"]["showed"]:
-        return render_template('training_rezult.html', **params)
+        return render_template("training_rezult.html", **params)
     level_name = count / level
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -657,59 +850,92 @@ def training2_result():
         level_name = "Профи"
     params["level_name"] = level_name
     user = quiz_analyze_session.query(User).filter(User.id == current_user.id).first()
-    id_ = quiz_analyze_session.query(Level).filter(Level.name == level_name).first().level_id
+    id_ = (
+        quiz_analyze_session.query(Level)
+        .filter(Level.name == level_name)
+        .first()
+        .level_id
+    )
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["tr2"]["showed"] = True
-    return render_template('training2_rezult.html', **params)
+    return render_template("training2_rezult.html", **params)
 
 
-@app.route('/training/3', methods=['GET', 'POST'])
+@app.route("/training/3", methods=["GET", "POST"])
 def training3_form():
-    if request.method == 'GET' and not isinstance(current_user, mixins.AnonymousUserMixin):
+    if request.method == "GET" and not isinstance(
+        current_user, mixins.AnonymousUserMixin
+    ):
         try:
-            if user_progress[current_user.id]["tr3"]["question_training_number"] == \
-                    user_progress[current_user.id]["tr3"]['train_len']:
+            if (
+                user_progress[current_user.id]["tr3"]["question_training_number"]
+                == user_progress[current_user.id]["tr3"]["train_len"]
+            ):
                 try:
-                    user_progress[current_user.id]["tr3"] = {'id': current_user.id, 'question_training_number': 0,
-                                                             'count_training': 0, 'showed': False,
-                                                             'training_program': training3_dict()}
-                    user_progress[current_user.id]["tr3"]['train_len'] = len(
-                        user_progress[current_user.id]["tr3"]['training_program'])
+                    user_progress[current_user.id]["tr3"] = {
+                        "id": current_user.id,
+                        "question_training_number": 0,
+                        "count_training": 0,
+                        "showed": False,
+                        "training_program": training3_dict(),
+                    }
+                    user_progress[current_user.id]["tr3"]["train_len"] = len(
+                        user_progress[current_user.id]["tr3"]["training_program"]
+                    )
                 except KeyError:
                     user_progress[current_user.id] = {}
-                    user_progress[current_user.id]["tr3"] = {'id': current_user.id, 'question_training_number': 0,
-                                                             'count_training': 0, 'showed': False,
-                                                             'training_program': training3_dict()}
-                    user_progress[current_user.id]["tr3"]['train_len'] = len(
-                        user_progress[current_user.id]["tr3"]['training_program'])
+                    user_progress[current_user.id]["tr3"] = {
+                        "id": current_user.id,
+                        "question_training_number": 0,
+                        "count_training": 0,
+                        "showed": False,
+                        "training_program": training3_dict(),
+                    }
+                    user_progress[current_user.id]["tr3"]["train_len"] = len(
+                        user_progress[current_user.id]["tr3"]["training_program"]
+                    )
         except:
             try:
-                user_progress[current_user.id]["tr3"] = {'id': current_user.id, 'question_training_number': 0,
-                                                         'count_training': 0, 'showed': False,
-                                                         'training_program': training3_dict()}
-                user_progress[current_user.id]["tr3"]['train_len'] = len(
-                    user_progress[current_user.id]["tr3"]['training_program'])
+                user_progress[current_user.id]["tr3"] = {
+                    "id": current_user.id,
+                    "question_training_number": 0,
+                    "count_training": 0,
+                    "showed": False,
+                    "training_program": training3_dict(),
+                }
+                user_progress[current_user.id]["tr3"]["train_len"] = len(
+                    user_progress[current_user.id]["tr3"]["training_program"]
+                )
             except KeyError:
                 user_progress[current_user.id] = {}
-                user_progress[current_user.id]["tr3"] = {'id': current_user.id, 'question_training_number': 0,
-                                                         'count_training': 0, 'showed': False,
-                                                         'training_program': training3_dict()}
-                user_progress[current_user.id]["tr3"]['train_len'] = len(
-                    user_progress[current_user.id]["tr3"]['training_program'])
-        num = user_progress[current_user.id]["tr3"]['question_training_number']
-        train = user_progress[current_user.id]["tr3"]['training_program']
-        params = {
-            'question': train[num][1]
-        }
-        return render_template('training3.html', **params)
-    elif request.method == 'POST' and type(current_user) != "AnonymousUserMixin":
-        num = user_progress[current_user.id]["tr3"]['question_training_number']
-        train = user_progress[current_user.id]["tr3"]['training_program']
+                user_progress[current_user.id]["tr3"] = {
+                    "id": current_user.id,
+                    "question_training_number": 0,
+                    "count_training": 0,
+                    "showed": False,
+                    "training_program": training3_dict(),
+                }
+                user_progress[current_user.id]["tr3"]["train_len"] = len(
+                    user_progress[current_user.id]["tr3"]["training_program"]
+                )
+        train = user_progress[current_user.id]["tr3"]["training_program"]
+        if not train:
+            return render_template("no_words.html")
+        num = user_progress[current_user.id]["tr3"]["question_training_number"]
+        params = {"question": train[num][1]}
+        return render_template("training3.html", **params)
+    elif request.method == "POST" and type(current_user) != "AnonymousUserMixin":
+        num = user_progress[current_user.id]["tr3"]["question_training_number"]
+        train = user_progress[current_user.id]["tr3"]["training_program"]
         if request.form is not None:
             if len(request.form) > 1:
                 user_progress[current_user.id]["tr3"]["question_training_number"] += 1
-                last_word = quiz_analyze_session.query(Word).filter(Word.word == train[num][0]).first()
+                last_word = (
+                    quiz_analyze_session.query(Word)
+                    .filter(Word.word == train[num][0])
+                    .first()
+                )
                 if request.form["user_answer"] == train[num][0]:
                     user_progress[current_user.id]["tr3"]["count_training"] += 1
                     # last_word.level += 1
@@ -717,27 +943,26 @@ def training3_form():
                 else:
                     last_word.level = 0
                 quiz_analyze_session.commit()
-        if user_progress[current_user.id]["tr3"]['question_training_number'] == user_progress[current_user.id]["tr3"][
-            'train_len']:
-            return redirect('/training/3_result')
-        return redirect('/training/3')
+        if (
+            user_progress[current_user.id]["tr3"]["question_training_number"]
+            == user_progress[current_user.id]["tr3"]["train_len"]
+        ):
+            return redirect("/training/3_result")
+        return redirect("/training/3")
     else:
-        return redirect('/register')
+        return redirect("/register")
 
 
-@app.route('/training/3_result')
+@app.route("/training/3_result")
 def training3_result():
     try:
         count = user_progress[current_user.id]["tr3"]["count_training"]
         level = user_progress[current_user.id]["tr3"]["question_training_number"]
     except:
-        return redirect('/training/3')
-    params = {
-        'count': count,
-        'level': level
-    }
+        return redirect("/training/3")
+    params = {"count": count, "level": level}
     if user_progress[current_user.id]["tr3"]["showed"]:
-        return render_template('training_rezult.html', **params)
+        return render_template("training_rezult.html", **params)
     level_name = count / level
     if level_name < 0.3334:
         level_name = "Новичок"
@@ -747,18 +972,25 @@ def training3_result():
         level_name = "Профи"
     params["level_name"] = level_name
     user = quiz_analyze_session.query(User).filter(User.id == current_user.id).first()
-    id_ = quiz_analyze_session.query(Level).filter(Level.name == level_name).first().level_id
+    id_ = (
+        quiz_analyze_session.query(Level)
+        .filter(Level.name == level_name)
+        .first()
+        .level_id
+    )
     user.level_id = id_
     quiz_analyze_session.commit()
     user_progress[current_user.id]["tr3"]["showed"] = True
-    return render_template('training3_rezult.html', **params)
+    return render_template("training3_rezult.html", **params)
 
 
 def set_max_question_id():
     global max_question_id, quiz_analyze_session
     quiz_analyze_session = db_session.create_session()
     try:
-        max_question_id = quiz_analyze_session.query(Question).order_by(Question.id.desc()).first().id
+        max_question_id = (
+            quiz_analyze_session.query(Question).order_by(Question.id.desc()).first().id
+        )
     except:
         max_question_id = 0
 
@@ -770,10 +1002,10 @@ def book_view(book_id, page, word):
         rus_word = result_word(tat_word)
 
         db_sess = db_session.create_session()
-        word = Word(word=tat_word, word_ru=rus_word)
-        db_sess.add(word)
+        word1 = Word(word=tat_word, word_ru=rus_word)
+        db_sess.add(word1)
         db_sess.commit()
-        max_id = db_sess.query(Word).order_by(Word.id).all()[-1]
+        max_id = db_sess.query(Word).order_by(Word.id).all()[-1].id
         user = db_sess.query(User).filter(User.id == current_user.id).first()
         user.words = user.words + str(max_id)
         db_sess.commit()
@@ -810,7 +1042,7 @@ def main():
     app.register_blueprint(words_api.blueprint)
     app.register_blueprint(levels_api.blueprint)
     app.register_blueprint(word_levels_api.blueprint)
-    app.run(port=8080, host='127.0.0.1')
+    app.run(port=8080, host="127.0.0.1")
 
 
 if __name__ == "__main__":

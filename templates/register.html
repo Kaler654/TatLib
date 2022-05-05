@@ -1,50 +1,67 @@
 {% extends "base.html" %} {% block content %}
 
+<div class="form">
+    <div class="form__container">
+        <form action="" class="form__form">
+            <h1 class="form__title">Регистрация</h1>
+            {{ form.hidden_tag()}}
+            <p>
+                {{ form.name(class="form-input", placeholder="Имя") }} {{ form.name.label(for="floatingInput") }} {% for error in form.name.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.email(class="form-input", type="login", placeholder="логин")}} {{ form.email.label(for="floatingInput") }} {% for error in form.email.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+                {% endfor %}
+            </p>
+
+        </form>
+    </div>
+</div>
+
 <div class="container  my-3">
     <form action="" method="post">
         <h1 style="text-align: center;">Регистрация</h1>
         {{ form.hidden_tag()}}
         <div class="row">
             <p class="form-floating">
-                {{ form.name(class="form-control", id="floatingInput", placeholder="имя") }}
-                {{ form.name.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
-                {% for error in form.name.errors %}
-                    <p class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </p>
+                {{ form.name(class="form-control", id="floatingInput", placeholder="имя") }} {{ form.name.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }} {% for error in form.name.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
                 {% endfor %}
             </p>
         </div>
         <div class="row">
             <p class="form-floating">
-                {{ form.email(class="form-control", type="login", id="floatingInput", placeholder="логин")}}
-                {{ form.email.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
-                {% for error in form.email.errors %}
-                    <p class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </p>
+                {{ form.email(class="form-control", type="login", id="floatingInput", placeholder="логин")}} {{ form.email.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }} {% for error in form.email.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
                 {% endfor %}
             </p>
         </div>
         <div class="row">
             <p class="form-floating">
-                {{ form.password(class="form-control", type="password", id="floatingPassword", placeholder="пароль") }}
-                {{ form.password.label(for="floatingPassword", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
-                {% for error in form.password.errors %}
-                    <p class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </p>
+                {{ form.password(class="form-control", type="password", id="floatingPassword", placeholder="пароль") }} {{ form.password.label(for="floatingPassword", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }} {% for error in form.password.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
                 {% endfor %}
             </p>
         </div>
         <div class="row">
             <p class="form-floating">
-                {{ form.password_again(class="form-control", type="password", id="floatingPassword", placeholder="повторите пароль") }}
-                {{ form.password_again.label(for="floatingPassword", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
-                {% for error in form.password_again.errors %}
-                    <p class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </p>
+                {{ form.password_again(class="form-control", type="password", id="floatingPassword", placeholder="повторите пароль") }} {{ form.password_again.label(for="floatingPassword", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }} {% for error in form.password_again.errors
+                %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
                 {% endfor %}
             </p>
         </div>
@@ -53,16 +70,15 @@
         </div>
     </form>
     {% if message %}
-        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
-        style="position: absolute; bottom: 100px; right: 20px;" data-bs-delay="2000" data-bs-autohide="false">
-            <div class="toast-header">
-                <strong class="me-auto">Ошибка</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-            {{ message }}
-            </div>
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" style="position: absolute; bottom: 100px; right: 20px;" data-bs-delay="2000" data-bs-autohide="false">
+        <div class="toast-header">
+            <strong class="me-auto">Ошибка</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
+        <div class="toast-body">
+            {{ message }}
+        </div>
+    </div>
     {% endif %}
 </div>
 

@@ -1,60 +1,18 @@
-{% extends "base.html" %}
-
-{% block title %}
-Главная страница
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %} Главная страница {% endblock %} {% block content %}
 <link rel="stylesheet" href="../../static/css/style.css">
 <section class="book">
     <div class="book__container">
         <div class="book__content">
-            <div class="book__left">
-                <div class="book__header">
-                    <div class="book__header__container">
-                        <div class="book__pagination">
-                            <ul class="pagination">
-                                <li><a href="../{{ page - 1 }}/{{ click_word }}" {% if page==1 %}
-                                       class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
-                                <li><a href="#">{{ page }}</a></li>
-                                <li><a href="../{{ page + 1 }}/{{ click_word }}" {% if page==pages %}
-                                       class="page-link disabled" {% else %} class="page-link" {% endif %}>»</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="book__text">
-                    <form action="multipart/form-data">
-                        {% for paragraph in text %}
-                        <p class="book__p">
-                            {% for word in paragraph %}
-                            <a class="book__word" href={{ word }}>{{ word }}</a>
-                            {% endfor %}
-                        </p>
-                        <br>
-                        {% endfor %}
-                    </form>
-                </div>
-                <div class="book__header">
-                    <div class="book__header__container">
-                        <div class="book__pagination">
-                            <ul class="pagination">
-                                <li><a href="{{ page - 1 }}" {% if page==1 %} class="page-link disabled" {% else %}
-                                       class="page-link" {% endif %}>«</a></li>
-                                <li><a href="#">{{ page }}</a></li>
-                                <li><a href="{{ page + 1 }}" {% if page==pages %} class="page-link disabled" {% else %}
-                                       class="page-link" {% endif %}>»</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="book__right">
-                <div class="book__header">
+                <div class="book__header" style="transform: translateY(10px);">
                     <div class="book__header__container">
                         <div class="book__pagination">
                             <ul class="pagination">
-                                <li><a href="#">🔊</a></li>
+                                <li>
+                                    <a href="#">
+                                        <ion-icon name="volume-medium-outline" style="font-size: 1.8em;"></ion-icon>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -76,6 +34,40 @@
                             <input type="submit" value="">
                             </input>
                         </form>
+                    </div>
+                </div>
+            </div>
+            <div class="book__left">
+                <div class="book__header" style="transform: translateY(10px);">
+                    <div class="book__header__container">
+                        <div class="book__pagination">
+                            <ul class="pagination">
+                                <li><a href="../{{ page - 1 }}/{{ click_word }}" {% if page==1 %} class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
+                                <li><a href="#">{{ page }}</a></li>
+                                <li><a href="../{{ page + 1 }}/{{ click_word }}" {% if page==pages %} class="page-link disabled" {% else %} class="page-link" {% endif %}>»</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="book__text">
+                    <form action="multipart/form-data">
+                        {% for paragraph in text %}
+                        <p class="book__p">
+                            {% for word in paragraph %}
+                            <a class="book__word" href={{ word }}>{{ word }}</a> {% endfor %}
+                        </p>
+                        <br> {% endfor %}
+                    </form>
+                </div>
+                <div class="book__header" style="transform: translateY(-10px);">
+                    <div class="book__header__container">
+                        <div class="book__pagination">
+                            <ul class="pagination">
+                                <li><a href="{{ page - 1 }}" {% if page==1 %} class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
+                                <li><a href="#">{{ page }}</a></li>
+                                <li><a href="{{ page + 1 }}" {% if page==pages %} class="page-link disabled" {% else %} class="page-link" {% endif %}>»</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

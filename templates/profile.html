@@ -1,13 +1,29 @@
 {% extends "base.html" %} {% block content %}
 
-<div class="container mt-3">
-    <div class="list-group">
-        <a href="" class="list-group-item list-group-item-action text-center bg-light">{{ current_user.name }}</a>
-        <a href="/books" class="list-group-item list-group-item-action text-center">Добавленные книги и тексты</a>
-        <a href="/words" class="list-group-item list-group-item-action text-center">Мои слова</a>
-        <a href="/logout" class="list-group-item list-group-item-action text-center">Выйти</a>
+
+
+<div class="profile">
+    <div class="profile__container">
+        <div class="profile__info">
+            {% for inform in items_list %}
+            <div class="profile__item">
+                <div class="profile__title">{{ inform[0] }}</div>
+                <div class="profile__description">{{ inform[1] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="profile__buttons">
+            <div class="profile__button button">
+                <a href="/books">Мои книги</a>
+            </div>
+            <div class="profile__button button">
+                <a href="/words">Мои слова</a>
+            </div>
+            <div class="profile__button button">
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
     </div>
 </div>
-
 
 {% endblock %}
