@@ -1,11 +1,14 @@
 {% extends "base.html" %} {% block content %}
 <div class="training3">
-    <div class="training3__container setting_container">
+    <div class="training3__container">
         <div class="training3__content">
+            <div class="training3__title">Расшифруйте анаграмму</div>
             <form action="" method="post" role="form" novalidate class="training3__form">
-                <label class="training3__margin">{{question}}</label>
-                <input class="training3__margin" type="text" id="user_answer" placeholder="ответ" name="user_answer" autocomplete="off">
-                <input class="submit_btn" type="submit" value="Далее" name="next" />
+                <label class="training3__label">{{question}}</label>
+                <div class="training3_answer">
+                    <input class="training3__answer__input" type="text" id="user_answer" placeholder="ответ" name="user_answer" autocomplete="off">
+                </div>
+                <input type="submit" value="Далее" name="next" class="training3__btn button training__button" />
             </form>
         </div>
     </div>

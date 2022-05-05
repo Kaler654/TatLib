@@ -320,7 +320,9 @@ def login():
 @app.route("/register", methods=["GET", "POST"])
 def reqister():
     form = RegisterForm()
+    print(11)
     if form.validate_on_submit():
+        print(1)
         if form.password.data != form.password_again.data:
             return render_template(
                 "register.html",
@@ -336,9 +338,13 @@ def reqister():
                 form=form,
                 message="Такой пользователь уже есть",
             )
+        for i in form:
+            print(i, i.data)
+        if form is None:
+            print("none")
         user = User(
             name=form.name.data,
-            email=form.email.data,
+            email=form.email.data
         )
         user.set_password(form.password.data)
         db_sess.add(user)
@@ -358,15 +364,17 @@ def settings():
 def profile():
     created_time = datetime.datetime.strptime(str(current_user.created_date)[:-10], "%Y-%m-%d %H:%M")
     using_time = str(datetime.datetime.now() - created_time)[:-10].replace('days,', 'дн')
-    print(using_time)
     using_time = using_time[:-3] + "ч " + using_time[-2:] + "мин"
-    print(using_time)
+    try:
+        word_count = len(current_user.words.split(","))
+    except:
+        word_count = 0
     items_list = [
         ["Имя", current_user.name], ["Почта", current_user.email],
         ["Телеграм", current_user.telegram_id if current_user.telegram_id is not None else "Не указан"],
         ["Дата создания", str(created_time)],
         ["Время использования", using_time],
-        ["Кол-во слов", len(current_user.words.split(","))],
+        ["Кол-во слов", word_count,]
         ]
     return render_template("profile.html", items_list=items_list)
 
@@ -393,32 +401,36 @@ def books_and_texts(val):
 @app.route("/words", methods=["GET", "POST"])
 @login_required
 def words():
-    db_sess = db_session.create_session()
-    user_words_id = (
-        db_sess.query(User.words)
-        .filter(User.id == current_user.id)
-        .first()[0]
-        .split(",")
-    )
-    if request.method == "POST":
-        if "search2" in request.form:
-            words = db_sess.query(Word).filter(
-                (Word.word.like(f"%{request.form.get('field2')}%")),
+    try:
+        db_sess = db_session.create_session()
+        user_words_id = (
+            db_sess.query(User.words)
+            .filter(User.id == current_user.id)
+            .first()[0]
+            .split(",")
+        )
+        if request.method == "POST":
+            if "search2" in request.form:
+                words = db_sess.query(Word).filter(
+                    (Word.word.like(f"%{request.form.get('field')}%")),
+                    Word.id.in_(list(map(int, user_words_id))),
+                )
+                return render_template("words.html", title="мои слова", words=words)
+            words = db_sess.query(Word).filter((Word.word_ru.like(f"%{request.form.get('field')}%")),
                 Word.id.in_(list(map(int, user_words_id))),
             )
             return render_template("words.html", title="мои слова", words=words)
-        words = db_sess.query(Word).filter((Word.word_ru.like(f"%{request.form.get('field')}%")),
-            Word.id.in_(list(map(int, user_words_id))),
+        user_words_id = (
+            db_sess.query(User.words)
+            .filter(User.id == current_user.id, Word.id.in_(list(map(int, user_words_id))))
+            .first()[0]
         )
+        user_words_id = user_words_id.split(",")
+        words = db_sess.query(Word).filter(Word.id.in_(list(map(int, user_words_id)))).all()
         return render_template("words.html", title="мои слова", words=words)
-    user_words_id = (
-        db_sess.query(User.words)
-        .filter(User.id == current_user.id, Word.id.in_(list(map(int, user_words_id))))
-        .first()[0]
-        .split(",")
-    )
-    words = db_sess.query(Word).filter(Word.id.in_(list(map(int, user_words_id)))).all()
-    return render_template("words.html", title="мои слова", words=words)
+    except:
+        return render_template("words.html", title="мои слова", words=[])
+
 
 
 @app.route("/books", methods=["GET", "POST"])

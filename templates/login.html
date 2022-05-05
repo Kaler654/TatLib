@@ -1,50 +1,38 @@
 {% extends "base.html" %} {% block content %}
 
-<div class="container my-3">
-    <form action="" method="post">
-        <h1 style="text-align: center;">Авторизация</h1>
-        {{ form.hidden_tag()}}
-        <div class="row">
-            <p class="form-floating">
-                {{ form.email(class="form-control", type="login", id="floatingInput", placeholder="логин") }}
-                {{ form.email.label(for="floatingInput", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
-                {% for error in form.email.errors %}
-                    <p class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </p>
+<div class="form">
+    <div class="form__container">
+        <form action="" class="form__data" method="post">
+            <h1 class="form__title">Авторизация</h1>
+            {{ form.hidden_tag()}}
+            <div class="form__data__element">
+                {{ form.email(class="form__input", autocomplete="off", type="login", id="floatingInput", placeholder="логин") }} {% for error in form.email.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
                 {% endfor %}
-            </p>
-        </div>
-        <div class="row">
-            <p class="form-floating">
-                {{ form.password(class="form-control", type="password", id="floatingPassword", placeholder="пароль") }}
-                {{ form.password.label(for="floatingPassword", class="ms-3", style="color: rgba(0, 0, 0, 0.7)") }}
-                {% for error in form.password.errors %}
-                    <p class="alert alert-danger" role="alert">
-                        {{ error }}
-                    </p>
+            </div>
+            <div class="form__data__element">
+                {{ form.password(class="form__input", autocomplete="off", type="password", id="floatingPassword", placeholder="пароль") }} {% for error in form.password.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
                 {% endfor %}
-            </p>
-        </div>
-        <div class="row">
-            <p >{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-        </div>
-        <div class="d-flex justify-content-center align-items-center">
-            <p>{{ form.submit(type="submit", class="btn btn-success") }}</p>
-        </div>
-    </form>
-    {% if message %}
-        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
-        style="position: absolute; bottom: 100px; right: 20px;" data-bs-delay="2000" data-bs-autohide="false">
+            </div>
+            {{ form.submit(type="submit", class="button training__button") }}
+        </form>
+        {% if message %}
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" style="position: absolute; bottom: 100px; right: 20px;" data-bs-delay="2000" data-bs-autohide="false">
             <div class="toast-header">
-                <strong class="me-auto">Ошибка</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                <strong>Ошибка</strong>
+                <button type="button" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-            {{ message }}
+                {{ message }}
             </div>
         </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
 
 {% endblock %}

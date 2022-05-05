@@ -2,13 +2,13 @@
 
 <div class="translate">
     <div class="translate__container">
-        <form action="" method="post">
+        <form action="" method="post" class="translate__form">
             <p class="translate__question">Выберите правильный перевод для слова:</p>
             <p class="translate__question">{{ question }}</p>
             <div class="translate__answers">
                 {% for answer in answers %}
                 <div class="translate__radio">
-                    <input id="option{{ loop.index }}" class="translate__answer" type="radio" name="radio" value={{answer[1]}}>
+                    <input id="option{{ loop.index }}" class="translate__answer" type="radio" name="radio" value={{answer[1]}} autocomplete="off">
                     <label for="option{{ loop.index }}" class="radio-label">
                     <p class="translate__answer__value">{{ answer[0] }}</p>
                 </div>

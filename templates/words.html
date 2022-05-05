@@ -1,34 +1,40 @@
 {% extends "base.html" %} {% block content %}
 
 <div class="container">
-    <div style="margin-left: 8%;">
-        <div style="display: inline-block; width: 48.5%;">
-            <forM method="POST">
-                <input class="input_search" type="text" name="field" autocomplete="off" placeholder="Поиск">
-                <input type="submit" name="search" value=">" class="search_button"></input>
-            </form>
+    <div class="user__words__container">
+        <div class="search__buttons">
+            <div class="book__search word__search">
+                <form method="POST">
+                    <input class="input_search" type="text" name="field" autocomplete="off" placeholder="Поиск">
+                    <button type="submit" name="search2" class="search_button" value="">
+                        <ion-icon class="search_icon" name="search-outline"></ion-icon>
+                    </button>
+                </form>
+            </div>
+            <div class="book__search word__search left__search__button">
+                <form method="POST">
+                    <input class="input_search" type="text" name="field" autocomplete="off" placeholder="Поиск">
+                    <button type="submit" name="search" class="search_button" value="">
+                        <ion-icon class="search_icon" name="search-outline"></ion-icon>
+                    </button>
+                </form>
+            </div>
         </div>
-        <div style="display: inline-block; width: 48.5%;">
-            <form method="POST">
-                <input class="input_search" type="text" name="field2" autocomplete="off" placeholder="Поиск">
-                <input type="submit" name="search2" value=">" class="search_button"></input>
-            </form>
-        </div>
-    </div>
-    <table class="table">
-        <thead>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Слово на татарском</th>
+                    <th scope="col">Слово на русском</th>
+                </tr>
+            </thead>
+            {% for word in words %}
             <tr>
-                <th scope="col">Слово на татарском</th>
-                <th scope="col">Слово на русском</th>
+                <td>{{ word.word }}</td>
+                <td>{{ word.word_ru }}</td>
             </tr>
-        </thead>
-        {% for word in words %}
-        <tr>
-            <td>{{ word.word }}</td>
-            <td>{{ word.word_ru }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+            {% endfor %}
+        </table>
+    </div>
 </div>
 
 {% endblock %}

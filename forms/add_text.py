@@ -4,7 +4,7 @@ from wtforms import StringField, SubmitField, FileField, SelectField
 
 class TextForm(FlaskForm):
     author = StringField('Имя автора')
-    title = StringField('Название книги/текста')
-    file = FileField('книга/текст в формате .epab')
-    difficult = SelectField('сложность', choices=[('1', "Новичок"), ('2', "Средний"), ('3', "Профи")])
-    submit = SubmitField('готово')
+    title = StringField('Название книги')
+    file = FileField('Книга в формате .epab')
+    difficult = SelectField('Сложность', choices=[('1', "Легкая"), ('2', "Средняя"), ('3', "Сложная")])
+    submit = SubmitField('Добавить')
