@@ -384,6 +384,12 @@ body._lock {
     background-color: #313979;
 }
 
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%
+}
+
 .book__header__container {
     min-height: 90px;
     display: flex;

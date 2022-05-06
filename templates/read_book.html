@@ -1,11 +1,12 @@
 {% extends "base.html" %} {% block title %} Главная страница {% endblock %} {% block content %}
-<link rel="stylesheet" href="../../static/css/style.css">
+<link rel="stylesheet" href="../../../static/css/style.css">
+<script src="../../../static/js/script.js"></script>
 <section class="book">
     <div class="book__container">
         <div class="book__content">
             <div class="book__left">
-                <div class="book__header">
-                    <div class="book__header__container">
+                <div class="book__header book__header__left">
+                    <div class="book__header__container book__header__container__left">
                         <div class="book__pagination">
                             <ul class="pagination">
                                 <li><a href="../{{ page - 1 }}/{{ click_word }}" {% if page==1 %} class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
@@ -25,13 +26,13 @@
                         <br> {% endfor %}
                     </form>
                 </div>
-                <div class="book__header">
-                    <div class="book__header__container">
+                <div class="book__header book__header__right">
+                    <div class="book__header__container book__header__container__right">
                         <div class="book__pagination">
                             <ul class="pagination">
-                                <li><a href="{{ page - 1 }}" {% if page==1 %} class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
+                                <li><a href="../{{ page - 1 }}/{{ click_word }}" {% if page==1 %} class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
                                 <li><a href="#">{{ page }}</a></li>
-                                <li><a href="{{ page + 1 }}" {% if page==pages %} class="page-link disabled" {% else %} class="page-link" {% endif %}>»</a></li>
+                                <li><a href="../{{ page + 1 }}/{{ click_word }}" {% if page==pages %} class="page-link disabled" {% else %} class="page-link" {% endif %}>»</a></li>
                             </ul>
                         </div>
                     </div>

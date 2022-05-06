@@ -481,7 +481,14 @@ def add_text():
                 shutil.move(f"books\{max_id}.epub", f"books\{max_id}\{max_id}.epub")
             convert(f"books/{max_id}/{max_id}.epub")
             shutil.move(f"{max_id}/", f"books/{max_id}/")
-            book.pages = len(os.listdir(f"books/{max_id}/{max_id}")) - 2
+            book.pages = 0
+            for i in os.listdir(f"books/{max_id}/{max_id}"):
+                if i.startswith("content") and i.endswith(".html"):
+                    try:
+                        test_ = int(i[7:-5])
+                        book.pages += 1
+                    except:
+                        pass
             book.user_author_id = current_user.id
             db_sess.merge(current_user)
             db_sess.add(book)
@@ -1031,7 +1038,7 @@ def book_view(book_id, page, word):
                 "r",
                 encoding="utf-8",
             ).read()
-            soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         text = soup.get_text().split("\n")
         text = [x.split() for x in text if x]
         translate_word = result_word(word)
