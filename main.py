@@ -161,7 +161,6 @@ def translate_tat_to_rus(word_tat):
         json=body,
         headers=headers,
     )
-    print(response.json())
     try:
         return response.json()["translations"][0]["text"]
     except:
@@ -448,7 +447,6 @@ def training1_form():
         current_user, mixins.AnonymousUserMixin
     ):
         try:
-            print(user_progress)
             if (
                 user_progress[current_user.id]["tr1"]["question_training_number"]
                 == user_progress[current_user.id]["tr1"]["train_len"]
