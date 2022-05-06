@@ -1,11 +1,10 @@
 {% extends "base.html" %} {% block title %} Главная страница {% endblock %} {% block content %}
 <link rel="stylesheet" href="../../../static/css/style.css">
-<script src="../../../static/js/script.js"></script>
 <section class="book">
     <div class="book__container">
         <div class="book__content">
             <div class="book__left">
-                <div class="book__header book__header__left">
+                <div class="book__header book__header__left" id="book__left__header">
                     <div class="book__header__container book__header__container__left">
                         <div class="book__pagination">
                             <ul class="pagination">
@@ -16,7 +15,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="book__text">
+                <div class="book__text" id="text_scroll">
                     <form action="multipart/form-data">
                         {% for paragraph in text %}
                         <p class="book__p">
@@ -26,24 +25,12 @@
                         <br> {% endfor %}
                     </form>
                 </div>
-                <div class="book__header book__header__right">
-                    <div class="book__header__container book__header__container__right">
-                        <div class="book__pagination">
-                            <ul class="pagination">
-                                <li><a href="../{{ page - 1 }}/{{ click_word }}" {% if page==1 %} class="page-link disabled" {% else %} class="page-link" {% endif %}>«</a></li>
-                                <li><a href="#">{{ page }}</a></li>
-                                <li><a href="../{{ page + 1 }}/{{ click_word }}" {% if page==pages %} class="page-link disabled" {% else %} class="page-link" {% endif %}>»</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <div class="book__right">
-                <div class="book__header">
+            <div class="book__right" id="book__right__scroll">
+                <div class="book__header book__header__left">
                     <div class="book__header__container">
                         <div class="book__pagination">
                             <ul class="pagination">
-                                <li><a href="#">🔊</a></li>
                             </ul>
                         </div>
                     </div>
@@ -71,4 +58,5 @@
         </div>
     </div>
 </section>
+<script src="../../../static/js/script.js"></script>
 {% endblock %}

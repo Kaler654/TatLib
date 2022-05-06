@@ -350,10 +350,10 @@ body._lock {
 }
 
 .star {
+    color: var(--dark-background-color);
     transition: .35s ease-out;
 }
 
-.star:active,
 .star:hover {
     color: #ffc800;
     transition: .35s ease-in;
@@ -366,10 +366,14 @@ body._lock {
 /*----------------book---------------------*/
 
 .book {
-    padding: 250px 0px 150px 0px;
+    padding: 110px 0px 150px 0px;
 }
 
-.book__container {}
+.book__container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
 
 .book__content {
     display: flex;
@@ -377,17 +381,34 @@ body._lock {
 }
 
 .book__left {
-    flex: 0 1 60%;
+    margin-left: 1.5%;
+    flex: 0 1 70%;
+}
+
+.book__left_ {
+    position: fixed;
+    top: 0;
+    width: 70%;
+}
+
+.book__right {
+    margin-right: 1.5%;
+    flex: 0 1 20%;
+}
+
+.book__right_ {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 20%;
+}
+
+.text_scroll {
+    padding-top: 20%;
 }
 
 .book__header {
     background-color: #313979;
-}
-
-.sticky {
-    position: fixed;
-    top: 0;
-    width: 100%
 }
 
 .book__header__container {
@@ -396,6 +417,8 @@ body._lock {
     align-items: center;
     justify-content: center;
 }
+
+.book__header__sound {}
 
 .book__text {
     background-color: #f0f2fc;
@@ -407,7 +430,7 @@ body._lock {
 }
 
 .book__translate {
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .my-3 {}
@@ -420,11 +443,16 @@ body._lock {
 
 .book__word {
     font-size: 24px;
+    color: black;
+    transition: .4s ease;
+    -webkit-transition: .4s ease;
 }
 
 .book__word:hover {
-    color: green;
+    color: blue;
     cursor: pointer;
+    transition: .4s ease;
+    -webkit-transition: .4s ease;
 }
 
 .book__pagination {}
@@ -438,10 +466,6 @@ body._lock {
 .disabled {
     pointer-events: none;
     cursor: default;
-}
-
-.book__right {
-    flex: 0 1 30%;
 }
 
 

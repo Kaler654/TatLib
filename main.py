@@ -1,31 +1,10 @@
 import datetime
 import os
 import shutil
-from distutils.command.upload import upload
 from random import choice, shuffle
 
 import requests
-import sqlalchemy
 from bs4 import BeautifulSoup
-from flask import (
-    Flask,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    url_for,
-)
-from flask_login import (
-    LoginManager,
-    current_user,
-    login_required,
-    login_user,
-    logout_user,
-    mixins,
-)
-from html_from_epub import convert
-
 from data import (
     books_api,
     db_session,
@@ -40,11 +19,26 @@ from data.questions import Question
 from data.users import User
 from data.word_levels import Word_level
 from data.words import Word
+from flask import (
+    Flask,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+)
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+    mixins,
+)
 from forms.add_text import TextForm
 from forms.login import LoginForm
-from forms.quiz import QuizForm
 from forms.register import RegisterForm
-
+from html_from_epub import convert
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "yandexlyceum_secret_key"
@@ -57,8 +51,8 @@ table_stage2time = {0: 0, 1: 1, 2: 3, 3: 5, 4: 6, 5: 13, 6: 28, 7: 58, 8: 118}
 
 
 # для переводчика
-IAM_TOKEN = 't1.9euelZrIk5HKi8iTy5qVlpWOnZPPy-3rnpWakIuJjMaPmpGVl5mNkpXKnZbl8_cSdC9s-e8SaV5t_t3z91IiLWz57xJpXm3' \
-            '-.lnBmzsqrTNq1m26p7EXkf9Q1lj2i4q4SxnqB0E10qGoFuWLBuYWVR0rcZb9T5DfOlSdMbXVh9Bps46Xk5bP1CQ '
+IAM_TOKEN = 't1.9euelZqMj5jMk42ai5nMks6LmM6Qje3rnpWakIuJjMaPmpGVl5mNkpXKnZbl8_d6aSts-e90JSgN_d3z9zoYKWz573QlKA39' \
+            '.b51MAsuBoARu3pLp-fhCOWioJH0ZsyM0bkUlzaEmBRmTmCX4TwOnVZZQiA9_nqN916pAroCuSfIh2VRDzrwFBQ '
 folder_id = 'b1g83nu3ghg9j3hciugr'
 target_language_ru = 'ru'
 target_language_tt = 'tt'
@@ -155,35 +149,41 @@ def allowed_file(filename):
 def translate_tat_to_rus(word_tat):
     symbols = '.,?!@#$%^&*()_+-=":;[]{}<>~`№'
     for i in symbols:
-        word_tat = word_tat.replace(i, '')
+        word_tat = word_tat.replace(i, "")
     body = {
         "targetLanguageCode": target_language_ru,
         "texts": word_tat,
         "folderId": folder_id,
-        "sourceLanguageCode": sourceLanguage_tat
+        "sourceLanguageCode": sourceLanguage_tat,
     }
-    response = requests.post('https://translate.api.cloud.yandex.net/translate/v2/translate',
-                             json=body,
-                             headers=headers
-                             )
-    return response.json()['translations'][0]['text']
+    response = requests.post(
+        "https://translate.api.cloud.yandex.net/translate/v2/translate",
+        json=body,
+        headers=headers,
+    )
+    print(response.json())
+    try:
+        return response.json()["translations"][0]["text"]
+    except:
+        "НЕТ ДОСТУПА К АПИ"
 
 
 def translate_rus_to_tat(word_rus):
     symbols = '.,?!@#$%^&*()_+-=":;[]{}<>~`№'
     for i in symbols:
-        word_rus = word_rus.replace(i, '')
+        word_rus = word_rus.replace(i, "")
     body = {
         "targetLanguageCode": target_language_tt,
         "texts": word_rus,
         "folderId": folder_id,
-        "sourceLanguageCode": sourceLanguage_rus
+        "sourceLanguageCode": sourceLanguage_rus,
     }
-    response = requests.post('https://translate.api.cloud.yandex.net/translate/v2/translate',
-                             json=body,
-                             headers=headers
-                             )
-    return response.json()['translations'][0]['text']
+    response = requests.post(
+        "https://translate.api.cloud.yandex.net/translate/v2/translate",
+        json=body,
+        headers=headers,
+    )
+    return response.json()["translations"][0]["text"]
 
 
 def get_book(book_id):
@@ -286,20 +286,30 @@ def settings():
 @app.route("/profile")
 @login_required
 def profile():
-    created_time = datetime.datetime.strptime(str(current_user.created_date)[:-10], "%Y-%m-%d %H:%M")
-    using_time = str(datetime.datetime.now() - created_time)[:-10].replace('days,', 'дн')
+    created_time = datetime.datetime.strptime(
+        str(current_user.created_date)[:-10], "%Y-%m-%d %H:%M"
+    )
+    using_time = str(datetime.datetime.now() - created_time)[:-10].replace(
+        "days,", "дн"
+    )
     using_time = using_time[:-3] + "ч " + using_time[-2:] + "мин"
     try:
         word_count = len(current_user.words.split(","))
     except:
         word_count = 0
     items_list = [
-        ["Имя", current_user.name], ["Почта", current_user.email],
-        ["Телеграм", current_user.telegram_id if current_user.telegram_id is not None else "Не указан"],
+        ["Имя", current_user.name],
+        ["Почта", current_user.email],
+        [
+            "Телеграм",
+            current_user.telegram_id
+            if current_user.telegram_id is not None
+            else "Не указан",
+        ],
         ["Дата создания", str(created_time)],
         ["Время использования", using_time],
-        ["Кол-во слов", word_count]
-        ]
+        ["Кол-во слов", word_count],
+    ]
     return render_template("profile.html", items_list=items_list)
 
 
@@ -340,17 +350,22 @@ def words():
                     Word.id.in_(list(map(int, user_words_id))),
                 )
                 return render_template("words.html", title="мои слова", words=words)
-            words = db_sess.query(Word).filter((Word.word_ru.like(f"%{request.form.get('field')}%")),
+            words = db_sess.query(Word).filter(
+                (Word.word_ru.like(f"%{request.form.get('field')}%")),
                 Word.id.in_(list(map(int, user_words_id))),
             )
             return render_template("words.html", title="мои слова", words=words)
         user_words_id = (
             db_sess.query(User.words)
-            .filter(User.id == current_user.id, Word.id.in_(list(map(int, user_words_id))))
+            .filter(
+                User.id == current_user.id, Word.id.in_(list(map(int, user_words_id)))
+            )
             .first()[0]
         )
         user_words_id = user_words_id.split(",")
-        words = db_sess.query(Word).filter(Word.id.in_(list(map(int, user_words_id)))).all()
+        words = (
+            db_sess.query(Word).filter(Word.id.in_(list(map(int, user_words_id)))).all()
+        )
         return render_template("words.html", title="мои слова", words=words)
     except:
         return render_template("words.html", title="мои слова", words=[])
@@ -695,7 +710,15 @@ def set_max_question_id():
 @app.route("/read_book/<int:book_id>/<int:page>/<word>", methods=["GET", "POST"])
 def book_view(book_id, page, word):
     if request.method == "POST":
-        tat_word = word.lower().replace(',', '').replace('!', '').replace('.', '').replace('?', '').replace('"', '').replace("'", '')
+        tat_word = (
+            word.lower()
+            .replace(",", "")
+            .replace("!", "")
+            .replace(".", "")
+            .replace("?", "")
+            .replace('"', "")
+            .replace("'", "")
+        )
         rus_word = result_word(tat_word)
         db_sess = db_session.create_session()
         word1 = Word(word=tat_word, word_ru=rus_word)
@@ -704,7 +727,7 @@ def book_view(book_id, page, word):
         max_id = db_sess.query(Word).order_by(Word.id).all()[-1].id
         user = db_sess.query(User).filter(User.id == current_user.id).first()
         if user.words:
-            user.words = user.words + ',' + str(max_id)
+            user.words = user.words + "," + str(max_id)
         else:
             user.words = str(max_id)
         wl = Word_level()

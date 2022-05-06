@@ -1,11 +1,13 @@
 import datetime
+
 import sqlalchemy
-from .db_session import SqlAlchemyBase
 from sqlalchemy_serializer import SerializerMixin
+
+from .db_session import SqlAlchemyBase
 
 
 class Word_level(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'word_levels'
+    __tablename__ = "word_levels"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     word_id = sqlalchemy.Column(sqlalchemy.Integer)
     user_id = sqlalchemy.Column(sqlalchemy.Integer)
